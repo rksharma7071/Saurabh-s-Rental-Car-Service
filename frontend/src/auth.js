@@ -1,15 +1,18 @@
-// Simple hardcoded login for a single-owner app.
-// No backend involved — this only gates the UI in the browser.
-// Change these two values to whatever you want the login to be.
-const USER_ID = "admin";
-const PASSWORD = "274509";
-
 const STORAGE_KEY = "rental_auth";
+const BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
 
-export function login(userId, password) {
-  const ok = userId.trim().toLowerCase() === USER_ID.toLowerCase() && password === PASSWORD;
-  if (ok) localStorage.setItem(STORAGE_KEY, "1");
-  return ok;
+export async function login(username, password) {
+  const res = await fetch(`${BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  if (res.ok && data.token) {
+    localStorage.setItem(STORAGE_KEY, data.token);
+    return true;
+  }
+  return false;
 }
 
 export function logout() {
@@ -17,5 +20,20 @@ export function logout() {
 }
 
 export function isAuthenticated() {
-  return localStorage.getItem(STORAGE_KEY) === "1";
+  return !!localStorage.getItem(STORAGE_KEY);
+}
+
+export function getToken() {
+  return localStorage.getItem(STORAGE_KEY);
+}
+
+export function getUserRole() {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role;
+  } catch (e) {
+    return null;
+  }
 }

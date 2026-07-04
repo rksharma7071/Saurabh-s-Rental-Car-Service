@@ -11,6 +11,7 @@ import Availability from "./pages/Availability";
 import CalendarPage from "./pages/CalendarPage";
 import Receipt from "./pages/Receipt";
 import SendMessage from "./pages/SendMessage";
+import Users from "./pages/Users";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/receipt" element={<Receipt />} />
               <Route path="/send-message" element={<SendMessage />} />
+              <Route path="/users" element={<Users />} />
             </Routes>
           </main>
         </div>

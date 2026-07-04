@@ -7,13 +7,17 @@ export default function Login({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (login(userId, password)) {
-      setError("");
-      onLogin();
-    } else {
-      setError("Incorrect user ID or password.");
+    try {
+      if (await login(userId, password)) {
+        setError("");
+        onLogin();
+      } else {
+        setError("Incorrect user ID or password.");
+      }
+    } catch (err) {
+      setError(err.message || "Login failed");
     }
   }
 
@@ -21,9 +25,15 @@ export default function Login({ onLogin }) {
     <div className="login-page">
       <div className="login-card">
         <div className="login-brand">
-          <div className="login-logo">🚗</div>
-          <h1>Saurabh's Rental<br />Car Service</h1>
-          <p>Sign in to your dashboard</p>
+          <div className="login-logo">
+            <img
+              src="/logo1.png"
+              alt="Saurabh's Rental Car Service Logo"
+              style={{ width: "100%" }}
+            />
+          </div>
+          {/* <h1>Saurabh's Rental<br />Car Service</h1>*/}
+          <p>Sign in to your dashboard</p> 
         </div>
 
         <form onSubmit={handleSubmit}>

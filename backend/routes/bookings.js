@@ -7,8 +7,31 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const rows = await Booking.find().sort({ created_at: -1, _id: -1 }).lean();
-    res.json(await enrichBookings(rows.map((r) => { const { _id, ...rest } = r; return { ...rest, id: _id }; })));
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const query = {};
+    
+    if (search) {
+      query.$or = [
+        { customer: { $regex: search, $options: "i" } },
+        { reg_no: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const total = await Booking.countDocuments(query);
+    const rows = await Booking.find(query).sort({ created_at: -1, _id: -1 }).skip(skip).limit(limitNum).lean();
+    
+    const data = await enrichBookings(rows.map((r) => { const { _id, ...rest } = r; return { ...rest, id: _id }; }));
+    
+    res.json({
+      data,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum)
+    });
   } catch (e) {
     next(e);
   }

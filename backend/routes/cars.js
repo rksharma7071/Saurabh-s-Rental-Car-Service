@@ -7,8 +7,31 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const cars = await Car.find().sort({ _id: 1 }).lean();
-    res.json(cars.map((c) => ({ ...c, id: c._id, _id: undefined })));
+    const { page = 1, limit = 10, search = "", type, status } = req.query;
+    const query = {};
+    
+    if (search) {
+      query.$or = [
+        { model: { $regex: search, $options: "i" } },
+        { reg_no: { $regex: search, $options: "i" } }
+      ];
+    }
+    if (type) query.type = type;
+    if (status) query.status = status;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const total = await Car.countDocuments(query);
+    const cars = await Car.find(query).sort({ _id: 1 }).skip(skip).limit(limitNum).lean();
+    
+    res.json({
+      data: cars.map((c) => ({ ...c, id: c._id, _id: undefined })),
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum)
+    });
   } catch (e) {
     next(e);
   }

@@ -1,10 +1,21 @@
-const BASE = import.meta.env.VITE_API_BASE || "localhost:3000";
+import { getToken, logout } from "./auth.js";
+
+const BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
 
 async function request(path, options = {}) {
+  const token = getToken();
+  const headers = { "Content-Type": "application/json", ...options.headers };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers,
   });
+  if (res.status === 401) {
+    logout();
+    window.location.reload();
+  }
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await res.json() : null;
   if (!res.ok) {
@@ -18,13 +29,13 @@ export const api = {
   getDashboard: () => request("/dashboard"),
 
   // Cars
-  getCars: () => request("/cars"),
+  getCars: (query = "") => request(`/cars${query}`),
   createCar: (body) => request("/cars", { method: "POST", body: JSON.stringify(body) }),
   updateCar: (id, body) => request(`/cars/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deleteCar: (id) => request(`/cars/${id}`, { method: "DELETE" }),
 
   // Bookings
-  getBookings: () => request("/bookings"),
+  getBookings: (query = "") => request(`/bookings${query}`),
   getBooking: (id) => request(`/bookings/${id}`),
   createBooking: (body) => request("/bookings", { method: "POST", body: JSON.stringify(body) }),
   updateBooking: (id, body) => request(`/bookings/${id}`, { method: "PUT", body: JSON.stringify(body) }),
@@ -45,4 +56,10 @@ export const api = {
   getReceiptPdfUrl: (id) => `${BASE}/receipt/${id}/pdf`,
   emailReceipt: (id, email) =>
     request(`/receipt/${id}/email`, { method: "POST", body: JSON.stringify({ email }) }),
+
+  // Users
+  getUsers: () => request("/users"),
+  createUser: (body) => request("/users", { method: "POST", body: JSON.stringify(body) }),
+  updateUser: (id, body) => request(`/users/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteUser: (id) => request(`/users/${id}`, { method: "DELETE" }),
 };

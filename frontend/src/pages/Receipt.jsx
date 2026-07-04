@@ -12,7 +12,8 @@ export default function Receipt() {
   const toast = useToast();
 
   useEffect(() => {
-    api.getBookings().then((b) => {
+    api.getBookings("?limit=1000").then((bRes) => {
+      const b = Array.isArray(bRes) ? bRes : (bRes.data || []);
       setBookings(b);
       if (b.length) setBookingId(b[b.length - 1].id);
     }).catch((e) => toast.error(e.message));

@@ -1,6 +1,11 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { connectDB } from "./database.js";
 import Car from "./models/Car.js";
 import Booking from "./models/Booking.js";
+import User from "./models/User.js";
+import bcrypt from "bcryptjs";
 
 export async function seed() {
   await connectDB();
@@ -18,6 +23,15 @@ export async function seed() {
     console.log(`Seeded ${cars.length} cars.`);
   } else {
     console.log("Cars collection already has data — skipping car seed.");
+  }
+
+  const userCount = await User.countDocuments();
+  if (userCount === 0) {
+    const hashedPassword = await bcrypt.hash("274509", 10);
+    await User.create({ username: "admin", password: hashedPassword, role: "admin" });
+    console.log("Seeded admin user.");
+  } else {
+    console.log("User collection already has data — skipping user seed.");
   }
 
   const bookingCount = await Booking.countDocuments();

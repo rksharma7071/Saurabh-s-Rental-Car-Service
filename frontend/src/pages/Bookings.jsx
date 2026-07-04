@@ -23,12 +23,29 @@ export default function Bookings() {
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+
   async function load() {
     setLoading(true);
     try {
-      const [b, c] = await Promise.all([api.getBookings(), api.getCars()]);
-      setBookings(b);
-      setCars(c);
+      const query = `?page=${page}&limit=10&search=${encodeURIComponent(search)}`;
+      const [bRes, cRes] = await Promise.all([api.getBookings(query), api.getCars("?limit=1000")]);
+      
+      if (Array.isArray(bRes)) {
+        setBookings(bRes);
+        setTotalPages(1);
+      } else {
+        setBookings(bRes.data || []);
+        setTotalPages(bRes.totalPages || 1);
+      }
+
+      if (Array.isArray(cRes)) {
+        setCars(cRes);
+      } else {
+        setCars(cRes.data || []);
+      }
     } catch (e) {
       toast.error(e.message);
     } finally {
@@ -36,7 +53,8 @@ export default function Bookings() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page, search]);
+  useEffect(() => { setPage(1); }, [search]);
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
@@ -119,6 +137,16 @@ export default function Bookings() {
         <button className="btn btn-primary" onClick={openAdd}>+ Add a Booking</button>
       </div>
 
+      <div className="filters" style={{ marginBottom: "20px" }}>
+        <input 
+          type="text" 
+          placeholder="Search by customer name or reg no" 
+          value={search} 
+          onChange={e => setSearch(e.target.value)} 
+          style={{ padding: "8px", width: "300px", borderRadius: "4px", border: "1px solid #ccc" }} 
+        />
+      </div>
+
       {loading ? (
         <div className="loading-spinner" />
       ) : (
@@ -160,6 +188,11 @@ export default function Bookings() {
               ))}
             </tbody>
           </table>
+          <div className="pagination" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+            <span style={{ fontSize: "14px", color: "#666" }}>Page {page} of {totalPages || 1}</span>
+            <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
+          </div>
         </div>
       )}
 

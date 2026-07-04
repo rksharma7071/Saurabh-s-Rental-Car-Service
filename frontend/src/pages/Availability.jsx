@@ -14,7 +14,13 @@ export default function Availability() {
   const toast = useToast();
 
   useEffect(() => {
-    api.getCars().then(setCars).catch((e) => toast.error(e.message));
+    api.getCars("?limit=1000").then(cRes => {
+      if (Array.isArray(cRes)) {
+        setCars(cRes);
+      } else {
+        setCars(cRes.data || []);
+      }
+    }).catch((e) => toast.error(e.message));
   }, []);
 
   async function handleCheck(e) {
