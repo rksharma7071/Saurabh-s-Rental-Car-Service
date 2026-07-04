@@ -1,11 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
-
 import express from "express";
 import cors from "cors";
 import { connectDB } from "./db/database.js";
 import { seed } from "./db/seed.js";
-
 import carsRouter from "./routes/cars.js";
 import bookingsRouter from "./routes/bookings.js";
 import dashboardRouter from "./routes/dashboard.js";
@@ -19,8 +17,20 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/", (req, res) => res.json({
+  "health": "/api/health",
+  "cars": "/api/cars",
+  "booking": "/api/bookings",
+  "dashboard": "/api/dashboard",
+  "availability": "/api/availability",
+  "calendar": "/api/calendar",
+  "receipt": "/api/receipt",
+}));
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to Saurabh's Rental Car Service API" });
+});
 
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/cars", carsRouter);
 app.use("/api/bookings", bookingsRouter);
 app.use("/api/dashboard", dashboardRouter);
@@ -38,14 +48,16 @@ app.use((err, req, res, next) => {
 async function start() {
   try {
     await connectDB();
-    await seed();
-    app.listen(PORT, () => {
-      console.log(`Saurabh's Rental Car Service API running on http://localhost:${PORT}`);
-    });
+    if (process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1") {
+      app.listen(PORT, () => {
+        console.log(`Saurabh's Rental Car Service API running on http://localhost:${PORT}`);
+      });
+    }
   } catch (err) {
     console.error("Failed to start server:", err.message);
-    process.exit(1);
   }
 }
 
 start();
+
+export default app;
