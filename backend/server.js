@@ -17,17 +17,29 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => res.json({
-  "health": "/api/health",
-  "cars": "/api/cars",
-  "booking": "/api/bookings",
-  "dashboard": "/api/dashboard",
-  "availability": "/api/availability",
-  "calendar": "/api/calendar",
-  "receipt": "/api/receipt",
-}));
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("Database connection failed:", err);
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
+
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Saurabh's Rental Car Service API" });
+  res.json({
+    message: "Welcome to Saurabh's Rental Car Service API",
+    endpoints: {
+      health: "/api/health",
+      cars: "/api/cars",
+      bookings: "/api/bookings",
+      dashboard: "/api/dashboard",
+      availability: "/api/availability",
+      calendar: "/api/calendar",
+      receipt: "/api/receipt",
+    }
+  });
 });
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));

@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'https://saurabh-s-rental-car-service-7mai.vercel.app',
         changeOrigin: true,
       },
     },
