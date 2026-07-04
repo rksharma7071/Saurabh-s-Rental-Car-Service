@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { getUserRole } from "../auth";
 
 const links = [
   { to: "/", label: "Dashboard", icon: "🏠" },
@@ -11,17 +12,27 @@ const links = [
 ];
 
 export default function Sidebar({ open, onClose, onLogout }) {
+  const isAdmin = getUserRole() === "admin";
+  const displayedLinks = isAdmin 
+    ? [...links, { to: "/users", label: "Users", icon: "👥" }] 
+    : links;
+
   return (
     <aside className={"sidebar" + (open ? " open" : "")}>
       <div className="sidebar-brand" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <h1>Saurabh's Rental<br />Car Service</h1>
-          <p>Car Rental Booking System</p>
+          {/* <h1>Saurabh's Rental<br />Car Service</h1> */}
+          {/* <p>Car Rental Booking System</p> */}
+          <img
+            src="/logo1.png"
+            alt="Saurabh's Rental Car Service Logo"
+            style={{ width: "100%" }}
+          />
         </div>
         <button className="modal-close sidebar-close-btn" style={{ color: "#fff" }} onClick={onClose}>✕</button>
       </div>
       <nav className="sidebar-nav">
-        {links.map((l) => (
+        {displayedLinks.map((l) => (
           <NavLink
             key={l.to}
             to={l.to}

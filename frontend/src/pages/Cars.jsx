@@ -19,10 +19,25 @@ export default function Cars() {
   const [saving, setSaving] = useState(false);
   const toast = useToast();
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
   async function load() {
     setLoading(true);
     try {
-      setCars(await api.getCars());
+      const query = `?page=${page}&limit=10&search=${encodeURIComponent(search)}&type=${filterType}&status=${filterStatus}`;
+      const res = await api.getCars(query);
+      // Fallback for API response before paginated schema is deployed
+      if (Array.isArray(res)) {
+        setCars(res);
+        setTotalPages(1);
+      } else {
+        setCars(res.data || []);
+        setTotalPages(res.totalPages || 1);
+      }
     } catch (e) {
       toast.error(e.message);
     } finally {
@@ -30,7 +45,10 @@ export default function Cars() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page, search, filterType, filterStatus]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [search, filterType, filterStatus]);
 
   function openAdd() {
     setEditing(null);
@@ -86,6 +104,18 @@ export default function Cars() {
         <button className="btn btn-primary" onClick={openAdd}>+ Add Car</button>
       </div>
 
+      <div className="filters" style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <input type="text" placeholder="Search by model or reg no" value={search} onChange={e => setSearch(e.target.value)} style={{ padding: "8px", flex: 1, borderRadius: "4px", border: "1px solid #ccc" }} />
+        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}>
+          <option value="">All Types</option>
+          {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}>
+          <option value="">All Statuses</option>
+          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
       {loading ? (
         <div className="loading-spinner" />
       ) : (
@@ -117,6 +147,11 @@ export default function Cars() {
               ))}
             </tbody>
           </table>
+          <div className="pagination" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+            <span style={{ fontSize: "14px", color: "#666" }}>Page {page} of {totalPages || 1}</span>
+            <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
+          </div>
         </div>
       )}
 

@@ -10,6 +10,10 @@ import dashboardRouter from "./routes/dashboard.js";
 import availabilityRouter from "./routes/availability.js";
 import calendarRouter from "./routes/calendar.js";
 import receiptRouter from "./routes/receipt.js";
+import authRouter from "./routes/auth.js";
+import usersRouter from "./routes/users.js";
+import { authMiddleware } from "./utils/authMiddleware.js";
+import { adminMiddleware } from "./utils/adminMiddleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -43,12 +47,14 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
-app.use("/api/cars", carsRouter);
-app.use("/api/bookings", bookingsRouter);
-app.use("/api/dashboard", dashboardRouter);
-app.use("/api/availability", availabilityRouter);
-app.use("/api/calendar", calendarRouter);
-app.use("/api/receipt", receiptRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/users", authMiddleware, adminMiddleware, usersRouter);
+app.use("/api/cars", authMiddleware, carsRouter);
+app.use("/api/bookings", authMiddleware, bookingsRouter);
+app.use("/api/dashboard", authMiddleware, dashboardRouter);
+app.use("/api/availability", authMiddleware, availabilityRouter);
+app.use("/api/calendar", authMiddleware, calendarRouter);
+app.use("/api/receipt", authMiddleware, receiptRouter);
 
 app.use((req, res) => res.status(404).json({ error: "Not found" }));
 
