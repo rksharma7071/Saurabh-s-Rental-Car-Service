@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Saurabh's Rental Car Service</title>
+
+<!-- React, ReactDOM, Babel (JSX transpiler), jsPDF — all via CDN, no build step -->
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.20/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root {
+  --surface: #F8FAFC;
+  --card: #FFFFFF;
+  --ink: #0F172A;
+  --ink-soft: #1E293B;
+  --muted: #64748B;
+  --muted-light: #94A3B8;
+  --line: #E2E8F0;
+  --green: #10B981;
+  --green-soft: #D1FAE5;
+  --green-text: #065F46;
+  --amber: #F59E0B;
+  --amber-soft: #FEF3C7;
+  --amber-text: #92400E;
+  --red: #EF4444;
+  --red-soft: #FEE2E2;
+  --red-text: #991B1B;
+  --blue: #3B82F6;
+  --blue-soft: #EFF6FF;
+  --blue-text: #1E40AF;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, "Segoe UI", Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+a { color: var(--blue); text-decoration: none; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* ---------- Layout ---------- */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 230px;
+  background: var(--ink-soft);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-brand h1 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  line-height: 1.3;
+}
+
+.sidebar-brand p {
+  font-size: 11px;
+  color: #94A3B8;
+  margin: 0;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #CBD5E1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sidebar-nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+
+.sidebar-nav a.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.sidebar-footer {
+  padding: 14px 20px;
+  font-size: 11px;
+  color: #64748B;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.main {
+  flex: 1;
+  padding: 28px 36px 60px;
+  max-width: 1200px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+
+.page-header p {
+  font-size: 13px;
+  color: var(--muted-light);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card-pad { padding: 20px 22px; }
+
+/* ---------- KPI Cards ---------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.kpi-card .label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-light);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.kpi-card .value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---------- Quick actions ---------- */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.quick-action-btn {
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  transition: opacity 0.15s;
+}
+.quick-action-btn:hover { opacity: 0.9; }
+.quick-action-btn.blue { background: var(--blue); }
+.quick-action-btn.green { background: var(--green); }
+.quick-action-btn.dark { background: var(--ink-soft); }
+
+/* ---------- Tables ---------- */
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.data-table thead th {
+  background: var(--ink-soft);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+table.data-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+table.data-table tbody tr:nth-child(even) { background: var(--surface); }
+table.data-table tbody tr:hover { background: var(--blue-soft); }
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+/* ---------- Status pills ---------- */
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pill-confirmed { background: var(--green-soft); color: var(--green-text); }
+.pill-pending   { background: var(--amber-soft); color: var(--amber-text); }
+.pill-completed { background: var(--blue-soft); color: var(--blue-text); }
+.pill-cancelled { background: var(--red-soft); color: var(--red-text); }
+.pill-active     { background: var(--green-soft); color: var(--green-text); }
+.pill-inactive    { background: var(--line); color: var(--ink-soft); }
+.pill-maintenance { background: var(--amber-soft); color: var(--amber-text); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s, background 0.15s;
+}
+.btn:hover { opacity: 0.92; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-danger  { background: var(--red); color: #fff; }
+.btn-ghost   { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ---------- Forms ---------- */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-field { display: flex; flex-direction: column; gap: 5px; }
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.form-field input, .form-field select {
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.form-field input:focus, .form-field select:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: -1px;
+}
+
+.form-field.highlight input, .form-field.highlight select {
+  background: #FEF9C3;
+  border-color: var(--amber);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+.modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 { margin: 0; font-size: 16px; }
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--muted-light);
+  line-height: 1;
+}
+
+.modal-body { padding: 22px; }
+
+/* ---------- Toasts ---------- */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+}
+
+.toast {
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: var(--shadow);
+  min-width: 240px;
+  animation: slideIn 0.2s ease-out;
+}
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+
+@keyframes slideIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ---------- Misc ---------- */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted-light);
+  font-size: 13px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+
+.muted { color: var(--muted-light); }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.mt-24 { margin-top: 24px; }
+.mb-16 { margin-bottom: 16px; }
+
+.loading-spinner {
+  border: 3px solid var(--line);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  animation: spin 0.7s linear infinite;
+  margin: 40px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Mobile topbar + slide-in sidebar ---------- */
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--ink-soft);
+  color: #fff;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+.mobile-topbar .brand { font-size: 14px; font-weight: 700; }
+.hamburger-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+.sidebar-close-btn { display: none; }
+.sidebar-overlay { display: none; }
+
+@media (max-width: 900px) {
+  .app-shell { flex-direction: column; min-height: 100vh; }
+  .mobile-topbar { display: flex; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 250px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 110;
+    overflow-y: auto;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-close-btn { display: block; }
+
+  .sidebar-overlay.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 100;
+  }
+
+  .main { padding: 18px 16px 50px; max-width: 100%; }
+  .page-header { flex-wrap: wrap; row-gap: 10px; }
+  .page-header h2 { font-size: 20px; }
+
+  .kpi-grid, .quick-actions { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .modal-box { max-width: calc(100% - 24px); }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: 1fr; }
+  .kpi-card .value { font-size: 22px; }
+  table.data-table { font-size: 12px; }
+  table.data-table thead th, table.data-table tbody td { padding: 8px; }
+  .modal-body { padding: 16px; }
+}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+
+/* ============================== Helpers ============================== */
+
+function daysBetween(from, to) {
+  const f = new Date(from + "T00:00:00");
+  const t = new Date(to + "T00:00:00");
+  return Math.round((t - f) / 86400000) + 1;
+}
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric",
+  });
+}
+
+function fmtRs(n) {
+  if (n === null || n === undefined || n === "") return "";
+  return "Rs " + Number(n).toLocaleString("en-IN");
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function nextId(list, prefix) {
+  let max = 0;
+  for (const item of list) {
+    const n = parseInt(String(item.id).replace(prefix, ""), 10);
+    if (!isNaN(n) && n > max) max = n;
+  }
+  return prefix + String(max + 1).padStart(3, "0");
+}
+
+function enrichBooking(b, cars) {
+  const car = cars.find((c) => c.reg_no === b.reg_no);
+  const rate = car ? car.rate : 0;
+  const days = daysBetween(b.from_date, b.to_date);
+  const total = days * rate;
+  const balance = total - (b.advance || 0);
+  return { ...b, rate, days, total, balance, model: car ? car.model : "", type: car ? car.type : "" };
+}
+
+/* ============================== Seed Data ============================== */
+
+const SEED_CARS = [
+  { id: "C001", reg_no: "UP32 AB 1234", model: "Maruti Swift Dzire", type: "Sedan", rate: 2500, status: "Active" },
+  { id: "C002", reg_no: "UP32 CD 5678", model: "Hyundai Creta", type: "SUV", rate: 3500, status: "Active" },
+  { id: "C003", reg_no: "UP32 EF 9012", model: "Toyota Innova", type: "MUV", rate: 4500, status: "Active" },
+  { id: "C004", reg_no: "UP32 GH 3456", model: "Maruti Ertiga", type: "MUV", rate: 3200, status: "Active" },
+  { id: "C005", reg_no: "UP32 JK 7890", model: "Honda City", type: "Sedan", rate: 2800, status: "Active" },
+];
+
+const SEED_BOOKINGS = [
+  { id: "B001", reg_no: "UP32 AB 1234", customer: "Rahul Sharma", phone: "+91 98765 43210", from_date: "2026-07-08", to_date: "2026-07-11", advance: 1000, status: "Confirmed", dismissed: false, created_at: 1 },
+  { id: "B002", reg_no: "UP32 CD 5678", customer: "Priya Verma", phone: "+91 98123 45678", from_date: "2026-07-18", to_date: "2026-07-23", advance: 2000, status: "Confirmed", dismissed: false, created_at: 2 },
+  { id: "B003", reg_no: "UP32 EF 9012", customer: "Amit Singh", phone: "+91 99887 76655", from_date: "2027-01-05", to_date: "2027-01-12", advance: 5000, status: "Confirmed", dismissed: false, created_at: 3 },
+  { id: "B004", reg_no: "UP32 AB 1234", customer: "Neha Gupta", phone: "+91 98890 12345", from_date: "2027-01-18", to_date: "2027-01-22", advance: 2500, status: "Confirmed", dismissed: false, created_at: 4 },
+  { id: "B005", reg_no: "UP32 JK 7890", customer: "Vikas Yadav", phone: "+91 99001 22334", from_date: "2026-08-12", to_date: "2026-08-15", advance: 0, status: "Pending", dismissed: false, created_at: 5 },
+  { id: "B006", reg_no: "UP32 CD 5678", customer: "Sachin Gupta", phone: "+91 98389 22420", from_date: "2026-09-15", to_date: "2026-09-20", advance: 3000, status: "Confirmed", dismissed: false, created_at: 6 },
+];
+
+function loadFromStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+/* ============================== Small components ============================== */
+
+function StatusPill({ status }) {
+  return <span className={"pill pill-" + String(status || "").toLowerCase()}>{status}</span>;
+}
+
+function KpiCard({ label, value }) {
+  return (
+    <div className="kpi-card">
+      <div className="label">{label}</div>
+      <div className="value">{value}</div>
+    </div>
+  );
+}
+
+function Modal({ title, onClose, children }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>{title}</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Toasts({ toasts }) {
+  return (
+    <div className="toast-container">
+      {toasts.map((t) => (
+        <div key={t.id} className={"toast " + t.type}>{t.message}</div>
+      ))}
+    </div>
+  );
+}
+
+function Sidebar({ page, navigate, onReset, open, onClose }) {
+  const links = [
+    { key: "dashboard", label: "Dashboard", icon: "🏠" },
+    { key: "cars", label: "Cars", icon: "🚗" },
+    { key: "bookings", label: "Bookings", icon: "📋" },
+    { key: "availability", label: "Check Availability", icon: "🔍" },
+    { key: "calendar", label: "Calendar", icon: "📅" },
+    { key: "receipt", label: "Receipt", icon: "🧾" },
+    { key: "message", label: "Send Message", icon: "💬" },
+  ];
+  return (
+    <aside className={"sidebar" + (open ? " open" : "")}>
+      <div className="sidebar-brand" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h1>Saurabh's Rental<br />Car Service</h1>
+          <p>Car Rental Booking System</p>
+        </div>
+        <button className="modal-close sidebar-close-btn" style={{ color: "#fff" }} onClick={onClose}>✕</button>
+      </div>
+      <nav className="sidebar-nav">
+        {links.map((l) => (
+          <a
+            key={l.key}
+            href="#"
+            className={page === l.key ? "active" : ""}
+            onClick={(e) => { e.preventDefault(); navigate(l.key); onClose(); }}
+          >
+            <span>{l.icon}</span> {l.label}
+          </a>
+        ))}
+      </nav>
+      <div className="sidebar-footer">
+        Lucknow, UP · +91 98389 22420
+        <div style={{ marginTop: 10 }}>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ color: "#CBD5E1", borderColor: "rgba(255,255,255,0.2)", width: "100%" }}
+            onClick={onReset}
+          >
+            ↺ Reset Sample Data
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+/* ============================== Dashboard ============================== */
+
+function Dashboard({ cars, bookings, navigate, dismissBooking }) {
+  const totalCars = cars.length;
+  const activeBookings = bookings.filter((b) => b.status === "Confirmed").length;
+  const pending = bookings.filter((b) => b.status === "Pending").length;
+  const enriched = bookings.map((b) => enrichBooking(b, cars));
+  const bookedRevenue = enriched.filter((b) => b.status === "Confirmed").reduce((s, b) => s + b.total, 0);
+
+  const activeList = enriched
+    .filter((b) => !b.dismissed)
+    .sort((a, b) => b.created_at - a.created_at);
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>Saurabh's Rental Car Service</h2>
+        <p>Car Rental Booking System</p>
+      </div>
+
+      <div className="kpi-grid">
+        <KpiCard label="Total Cars" value={totalCars} />
+        <KpiCard label="Active Bookings" value={activeBookings} />
+        <KpiCard label="Pending" value={pending} />
+        <KpiCard label="Booked Revenue" value={fmtRs(bookedRevenue)} />
+      </div>
+
+      <div className="quick-actions">
+        <button className="quick-action-btn blue" onClick={() => navigate("availability")}>▶  Check Availability</button>
+        <button className="quick-action-btn green" onClick={() => navigate("bookings", { openNew: true })}>+  Add a Booking</button>
+        <button className="quick-action-btn dark" onClick={() => navigate("calendar")}>📅  View Calendar</button>
+      </div>
+
+      <h3 className="section-title">Active Bookings (newest first)</h3>
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Customer</th><th>Car</th><th>From</th><th>To</th>
+              <th>Total</th><th>Advance</th><th>Balance</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {activeList.length === 0 && (
+              <tr><td colSpan={10} className="empty-state">No active bookings yet.</td></tr>
+            )}
+            {activeList.map((b) => (
+              <tr key={b.id}>
+                <td>{b.id}</td>
+                <td>{b.customer}</td>
+                <td>{b.reg_no}</td>
+                <td>{fmtDate(b.from_date)}</td>
+                <td>{fmtDate(b.to_date)}</td>
+                <td>{fmtRs(b.total)}</td>
+                <td>{fmtRs(b.advance)}</td>
+                <td>{fmtRs(b.balance)}</td>
+                <td><StatusPill status={b.status} /></td>
+                <td><button className="btn btn-ghost btn-sm" onClick={() => dismissBooking(b.id, true)}>Dismiss</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ============================== Cars ============================== */
+
+const TYPES = ["Sedan", "SUV", "MUV", "Hatchback", "Van"];
+const CAR_STATUSES = ["Active", "Inactive", "Maintenance"];
+
+function Cars({ cars, bookings, addCar, updateCar, deleteCar, toast }) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ reg_no: "", model: "", type: "Sedan", rate: "", status: "Active" });
+
+  function openAdd() {
+    setEditing(null);
+    setForm({ reg_no: "", model: "", type: "Sedan", rate: "", status: "Active" });
+    setModalOpen(true);
+  }
+  function openEdit(car) {
+    setEditing(car);
+    setForm({ reg_no: car.reg_no, model: car.model, type: car.type, rate: car.rate, status: car.status });
+    setModalOpen(true);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.reg_no || !form.model || !form.rate) {
+      toast.error("Registration, model, and rate are required");
+      return;
+    }
+    const dup = cars.find((c) => c.reg_no === form.reg_no && (!editing || c.id !== editing.id));
+    if (dup) {
+      toast.error("Registration number already exists");
+      return;
+    }
+    const payload = { ...form, rate: Number(form.rate) };
+    if (editing) {
+      updateCar(editing.id, payload);
+      toast.success(editing.id + " updated");
+    } else {
+      const id = nextId(cars, "C");
+      addCar({ id, ...payload });
+      toast.success(id + " added to fleet");
+    }
+    setModalOpen(false);
+  }
+
+  function handleDelete(car) {
+    const inUse = bookings.some((b) => b.reg_no === car.reg_no);
+    if (inUse) {
+      toast.error("Cannot delete — bookings reference this car. Set status to Inactive instead.");
+      return;
+    }
+    if (!confirm("Delete " + car.reg_no + " (" + car.model + ")?")) return;
+    deleteCar(car.id);
+    toast.success(car.id + " deleted");
+  }
+
+  return (
+    <div>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2>Cars</h2>
+          <p>Add, edit, or update your fleet here. Status drives the calendar and availability.</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAdd}>+ Add Car</button>
+      </div>
+
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr><th>Car ID</th><th>Registration No</th><th>Model</th><th>Type</th><th>Daily Rate</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            {cars.length === 0 && <tr><td colSpan={7} className="empty-state">No cars in the fleet yet.</td></tr>}
+            {cars.map((c) => (
+              <tr key={c.id}>
+                <td>{c.id}</td><td>{c.reg_no}</td><td>{c.model}</td><td>{c.type}</td>
+                <td>{fmtRs(c.rate)}</td><td><StatusPill status={c.status} /></td>
+                <td>
+                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>Edit</button>{" "}
+                  <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(c)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {modalOpen && (
+        <Modal title={editing ? "Edit " + editing.id : "Add a Car"} onClose={() => setModalOpen(false)}>
+          <form onSubmit={handleSubmit}>
+            <div className="form-grid">
+              <div className="form-field">
+                <label>Registration No</label>
+                <input required value={form.reg_no} onChange={(e) => setForm({ ...form, reg_no: e.target.value })} placeholder="UP32 XX 0000" />
+              </div>
+              <div className="form-field">
+                <label>Model</label>
+                <input required value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="Maruti Swift Dzire" />
+              </div>
+              <div className="form-field">
+                <label>Type</label>
+                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                  {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Daily Rate (Rs)</label>
+                <input required type="number" min="0" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>Status</label>
+                <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                  {CAR_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="form-actions">
+              <button type="button" className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
+              <button type="submit" className="btn btn-primary">{editing ? "Save Changes" : "Add Car"}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+/* ============================== Bookings ============================== */
+
+const BOOKING_STATUSES = ["Confirmed", "Pending", "Completed", "Cancelled"];
+
+function emptyBookingForm() {
+  return { reg_no: "", customer: "", phone: "", from_date: todayISO(), to_date: todayISO(), advance: "", status: "Pending" };
+}
+
+function Bookings({ cars, bookings, addBooking, updateBooking, deleteBooking, dismissBooking, toast, autoOpenNew, clearAutoOpen }) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyBookingForm());
+
+  useEffect(() => {
+    if (autoOpenNew) {
+      openAdd();
+      clearAutoOpen();
+    }
+  }, [autoOpenNew]);
+
+  function openAdd() {
+    setEditing(null);
+    setForm(emptyBookingForm());
+    setModalOpen(true);
+  }
+  function openEdit(b) {
+    setEditing(b);
+    setForm({ reg_no: b.reg_no, customer: b.customer, phone: b.phone, from_date: b.from_date, to_date: b.to_date, advance: b.advance, status: b.status });
+    setModalOpen(true);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (new Date(form.to_date) < new Date(form.from_date)) {
+      toast.error("To date cannot be before From date");
+      return;
+    }
+    const payload = { ...form, advance: Number(form.advance) || 0 };
+    if (editing) {
+      updateBooking(editing.id, payload);
+      toast.success(editing.id + " updated");
+    } else {
+      const id = nextId(bookings, "B");
+      addBooking({ id, ...payload, dismissed: false, created_at: Date.now() });
+      toast.success(id + " created");
+    }
+    setModalOpen(false);
+  }
+
+  function handleDelete(b) {
+    if (!confirm("Delete booking " + b.id + " for " + b.customer + "?")) return;
+    deleteBooking(b.id);
+    toast.success(b.id + " deleted");
+  }
+
+  const enriched = useMemo(
+    () => [...bookings].sort((a, b) => b.created_at - a.created_at).map((b) => enrichBooking(b, cars)),
+    [bookings, cars]
+  );
+
+  const selectedCar = cars.find((c) => c.reg_no === form.reg_no);
+  const previewDays = form.from_date && form.to_date ? daysBetween(form.from_date, form.to_date) : 0;
+  const previewRate = selectedCar ? selectedCar.rate : 0;
+  const previewTotal = previewDays > 0 ? previewDays * previewRate : 0;
+  const previewBalance = previewTotal - (Number(form.advance) || 0);
+
+  return (
+    <div>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2>Bookings</h2>
+          <p>Days, Rate, Total and Balance are auto-calculated.</p>
+        </div>
+        <button className="btn btn-primary" onClick={openAdd}>+ Add a Booking</button>
+      </div>
+
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Car</th><th>Customer</th><th>Phone</th><th>From</th><th>To</th>
+              <th>Days</th><th>Rate</th><th>Total</th><th>Advance</th><th>Balance</th>
+              <th>Status</th><th>Dismiss</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {enriched.length === 0 && <tr><td colSpan={14} className="empty-state">No bookings yet.</td></tr>}
+            {enriched.map((b) => (
+              <tr key={b.id} style={b.dismissed ? { opacity: 0.5 } : {}}>
+                <td>{b.id}</td><td>{b.reg_no}</td><td>{b.customer}</td><td>{b.phone}</td>
+                <td>{fmtDate(b.from_date)}</td><td>{fmtDate(b.to_date)}</td>
+                <td>{b.days}</td><td>{fmtRs(b.rate)}</td><td>{fmtRs(b.total)}</td>
+                <td>{fmtRs(b.advance)}</td><td>{fmtRs(b.balance)}</td>
+                <td><StatusPill status={b.status} /></td>
+                <td><input type="checkbox" checked={!!b.dismissed} onChange={() => dismissBooking(b.id, !b.dismissed)} /></td>
+                <td>
+                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(b)}>Edit</button>{" "}
+                  <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(b)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {modalOpen && (
+        <Modal title={editing ? "Edit " + editing.id : "Add a Booking"} onClose={() => setModalOpen(false)}>
+          <form onSubmit={handleSubmit}>
+            <div className="form-grid">
+              <div className="form-field">
+                <label>Car (Registration No)</label>
+                <select required value={form.reg_no} onChange={(e) => setForm({ ...form, reg_no: e.target.value })}>
+                  <option value="">Select a car…</option>
+                  {cars.map((c) => <option key={c.id} value={c.reg_no}>{c.reg_no} — {c.model} (Rs {c.rate}/day)</option>)}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Customer Name</label>
+                <input required value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>Phone</label>
+                <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+91 98XXX XXXXX" />
+              </div>
+              <div className="form-field">
+                <label>Status</label>
+                <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                  {BOOKING_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>From Date</label>
+                <input required type="date" value={form.from_date} onChange={(e) => setForm({ ...form, from_date: e.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>To Date</label>
+                <input required type="date" value={form.to_date} onChange={(e) => setForm({ ...form, to_date: e.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>Advance Paid (Rs)</label>
+                <input type="number" min="0" value={form.advance} onChange={(e) => setForm({ ...form, advance: e.target.value })} />
+              </div>
+            </div>
+
+            {selectedCar && (
+              <div className="card card-pad mt-24" style={{ background: "var(--surface)" }}>
+                <Row2 label="Days" value={previewDays > 0 ? previewDays : "—"} />
+                <Row2 label="Rate / day" value={fmtRs(previewRate)} />
+                <Row2 label="Total" value={fmtRs(previewTotal)} />
+                <Row2 label="Balance Due" value={fmtRs(previewBalance)} />
+              </div>
+            )}
+
+            <div className="form-actions">
+              <button type="button" className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
+              <button type="submit" className="btn btn-primary">{editing ? "Save Changes" : "Create Booking"}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function Row2({ label, value }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
+      <span className="muted">{label}</span><strong>{value}</strong>
+    </div>
+  );
+}
+
+/* ============================== Availability ============================== */
+
+function Availability({ cars, bookings }) {
+  const [regNo, setRegNo] = useState("");
+  const [from, setFrom] = useState(todayISO());
+  const [to, setTo] = useState(todayISO());
+  const [result, setResult] = useState(null);
+
+  function handleCheck(e) {
+    e.preventDefault();
+    if (!regNo) return;
+    const conflicts = bookings
+      .filter((b) => b.reg_no === regNo && b.status === "Confirmed" && b.from_date <= to && b.to_date >= from)
+      .map((b) => enrichBooking(b, cars))
+      .sort((a, b) => a.from_date.localeCompare(b.from_date));
+    setResult({ available: conflicts.length === 0, conflicts });
+  }
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>Check Availability</h2>
+        <p>Pick a car and date range. Conflicting confirmed bookings appear below.</p>
+      </div>
+
+      <div className="card card-pad mb-16">
+        <h3 className="section-title">1. Search</h3>
+        <form onSubmit={handleCheck} className="form-grid" style={{ gridTemplateColumns: "2fr 1fr 1fr auto", alignItems: "end" }}>
+          <div className="form-field highlight">
+            <label>Car (Reg No)</label>
+            <select required value={regNo} onChange={(e) => setRegNo(e.target.value)}>
+              <option value="">Select a car…</option>
+              {cars.map((c) => <option key={c.id} value={c.reg_no}>{c.reg_no} — {c.model}</option>)}
+            </select>
+          </div>
+          <div className="form-field highlight">
+            <label>Start Date</label>
+            <input required type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </div>
+          <div className="form-field highlight">
+            <label>End Date</label>
+            <input required type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+          <button type="submit" className="btn btn-primary">Check</button>
+        </form>
+      </div>
+
+      {result && (
+        <React.Fragment>
+          <h3 className="section-title">2. Result</h3>
+          <div
+            className="card card-pad mb-16 text-center"
+            style={{
+              background: result.available ? "var(--green-soft)" : "var(--red-soft)",
+              color: result.available ? "var(--green-text)" : "var(--red-text)",
+              fontSize: 20, fontWeight: 700, padding: "26px",
+            }}
+          >
+            {result.available ? "✓   AVAILABLE" : "✕   NOT AVAILABLE"}
+          </div>
+
+          <h3 className="section-title">3. Conflicting Confirmed Bookings</h3>
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead><tr><th>Booking ID</th><th>Customer</th><th>From</th><th>To</th><th>Days</th><th>Status</th></tr></thead>
+              <tbody>
+                {result.conflicts.length === 0 && <tr><td colSpan={6} className="empty-state">No conflicts — this car is free for the selected dates.</td></tr>}
+                {result.conflicts.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.id}</td><td>{c.customer}</td><td>{fmtDate(c.from_date)}</td><td>{fmtDate(c.to_date)}</td><td>{c.days}</td>
+                    <td><StatusPill status={c.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/* ============================== Calendar ============================== */
+
+const CAL_DAYS = 15;
+
+function CalendarPage({ cars, bookings }) {
+  const [start, setStart] = useState(todayISO());
+
+  const days = useMemo(() => {
+    const arr = [];
+    const startDate = new Date(start + "T00:00:00");
+    for (let i = 0; i < CAL_DAYS; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      arr.push(d.toISOString().slice(0, 10));
+    }
+    return arr;
+  }, [start]);
+
+  const rangeStart = days[0];
+  const rangeEnd = days[days.length - 1];
+
+  const grid = cars.map((car) => {
+    const carBookings = bookings.filter(
+      (b) => b.reg_no === car.reg_no && b.status === "Confirmed" && b.from_date <= rangeEnd && b.to_date >= rangeStart
+    );
+    const bookedSet = new Set();
+    carBookings.forEach((b) => {
+      let d = new Date(b.from_date + "T00:00:00");
+      const end = new Date(b.to_date + "T00:00:00");
+      while (d <= end) {
+        bookedSet.add(d.toISOString().slice(0, 10));
+        d.setDate(d.getDate() + 1);
+      }
+    });
+    return { ...car, booked: days.map((d) => bookedSet.has(d)) };
+  });
+
+  function dayLabel(iso) { return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short" }); }
+  function dayNum(iso) { return new Date(iso + "T00:00:00").getDate(); }
+  function isWeekend(iso) { const wd = new Date(iso + "T00:00:00").getDay(); return wd === 0 || wd === 6; }
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>Calendar</h2>
+        <p>Booked days marked red. Free days green. Edit Start Date to pan the window.</p>
+      </div>
+
+      <div className="form-field highlight mb-16" style={{ maxWidth: 200 }}>
+        <label>Start Date</label>
+        <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+      </div>
+
+      <div className="table-wrap">
+        <table className="data-table" style={{ tableLayout: "fixed" }}>
+          <thead>
+            <tr>
+              <th style={{ width: 180 }}>Car</th>
+              {days.map((d) => (
+                <th key={d} style={{ width: 50, textAlign: "center", background: isWeekend(d) ? "var(--amber)" : "var(--ink-soft)" }}>
+                  {dayLabel(d)}<br />{dayNum(d)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {grid.length === 0 && <tr><td colSpan={CAL_DAYS + 1} className="empty-state">No cars in the fleet yet.</td></tr>}
+            {grid.map((car) => (
+              <tr key={car.id}>
+                <td style={{ fontWeight: 600 }}>{car.reg_no} <span className="muted">| {car.model}</span></td>
+                {car.booked.map((isBooked, i) => (
+                  <td key={i} style={{ textAlign: "center", background: isBooked ? "#FCA5A5" : "#BBF7D0", color: isBooked ? "#991B1B" : "#065F46", fontWeight: 700 }}>
+                    {isBooked ? "●" : ""}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ display: "flex", gap: 18, marginTop: 18, fontSize: 13 }}>
+        <Legend color="#FCA5A5" text="Booked" />
+        <Legend color="#BBF7D0" text="Free" />
+        <Legend color="var(--amber)" text="Weekend" />
+      </div>
+    </div>
+  );
+}
+
+function Legend({ color, text }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span style={{ width: 14, height: 14, background: color, borderRadius: 3, display: "inline-block" }} />
+      {text}
+    </div>
+  );
+}
+
+/* ============================== Receipt ============================== */
+
+const BUSINESS_NAME = "Saurabh's Rental Car Service";
+const BUSINESS_PHONE = "+91 98389 22420";
+const BUSINESS_EMAIL = "mailsachingupta20@gmail.com";
+
+function downloadReceiptPdf(b) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const INK = "#0F172A", INK_SOFT = "#1E293B", MUTED = "#64748B", LINE = "#CBD5E1", AMBER = "#F59E0B";
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(INK);
+  doc.text(BUSINESS_NAME, 18, 20);
+  doc.setTextColor(AMBER);
+  doc.text("RECEIPT", 192, 20, { align: "right" });
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(MUTED);
+  doc.text(BUSINESS_NAME + "  |  Lucknow, Uttar Pradesh", 18, 27);
+  doc.text("Phone: " + BUSINESS_PHONE + "  |  Email: " + BUSINESS_EMAIL, 18, 32);
+  doc.setDrawColor(LINE); doc.line(18, 36, 192, 36);
+
+  let y = 46;
+  doc.setFontSize(8); doc.setTextColor(MUTED);
+  doc.text("BILL TO", 18, y);
+  doc.text("VEHICLE", 110, y);
+
+  y += 6;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(INK);
+  doc.text(b.customer, 18, y);
+  doc.text(b.reg_no, 110, y);
+
+  y += 6;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(INK_SOFT);
+  doc.text(b.phone, 18, y);
+  doc.text((b.model || "") + (b.type ? " | " + b.type : ""), 110, y);
+
+  y += 8; doc.setDrawColor(LINE); doc.line(18, y, 192, y);
+
+  y += 8; doc.setFontSize(8); doc.setTextColor(MUTED); doc.text("BOOKING PERIOD", 18, y);
+  y += 6;
+  const cols = [18, 60, 100, 130];
+  const labels = ["From", "To", "Days", "Daily Rate"];
+  const values = [fmtDate(b.from_date), fmtDate(b.to_date), String(b.days), fmtRs(b.rate)];
+  labels.forEach((l, i) => { doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(MUTED); doc.text(l, cols[i], y); });
+  y += 6;
+  values.forEach((v, i) => { doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(INK); doc.text(v, cols[i], y); });
+
+  y += 8; doc.setDrawColor(LINE); doc.line(18, y, 192, y);
+
+  y += 8; doc.setFontSize(8); doc.setTextColor(MUTED); doc.text("CHARGES", 18, y);
+  y += 7;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(INK_SOFT);
+  doc.text(b.days + " days x " + fmtRs(b.rate), 18, y);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(INK);
+  doc.text(fmtRs(b.total), 192, y, { align: "right" });
+
+  y += 7;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(INK_SOFT);
+  doc.text("Total", 160, y, { align: "right" });
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(INK);
+  doc.text(fmtRs(b.total), 192, y, { align: "right" });
+
+  y += 6;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(INK_SOFT);
+  doc.text("Advance Paid", 160, y, { align: "right" });
+  doc.text(fmtRs(b.advance), 192, y, { align: "right" });
+
+  y += 8;
+  doc.setFillColor(INK_SOFT);
+  doc.rect(18, y - 5, 174, 11, "F");
+  doc.setTextColor("#FFFFFF"); doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+  doc.text("BALANCE DUE", 22, y + 2);
+  doc.setFontSize(13);
+  doc.text(fmtRs(b.balance), 188, y + 2, { align: "right" });
+
+  y += 28;
+  doc.setTextColor(MUTED); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+  doc.text("_________________________", 18, y);
+  doc.text("_________________________", 110, y);
+  y += 5;
+  doc.text("Customer Signature", 18, y);
+  doc.text("Authorised Signatory", 110, y);
+
+  y += 14;
+  doc.setFont("helvetica", "italic"); doc.setFontSize(11); doc.setTextColor(INK_SOFT);
+  doc.text("Thank you for choosing " + BUSINESS_NAME + "!", 105, y, { align: "center" });
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(MUTED);
+  doc.text("Booking ID: " + b.id, 105, 285, { align: "center" });
+
+  doc.save("Receipt-" + b.id + ".pdf");
+}
+
+function gmailComposeUrl(b, email) {
+  const subject = "Receipt from " + BUSINESS_NAME + " - " + b.id;
+  const body =
+    "Dear " + b.customer + ",\n\n" +
+    "Please find your booking receipt details below.\n\n" +
+    "Booking ID: " + b.id + "\n" +
+    "Car: " + b.reg_no + "\n" +
+    "From: " + fmtDate(b.from_date) + "\n" +
+    "To: " + fmtDate(b.to_date) + "\n" +
+    "Days: " + b.days + "\n" +
+    "Total: " + fmtRs(b.total) + "\n" +
+    "Advance: " + fmtRs(b.advance) + "\n" +
+    "Balance Due: " + fmtRs(b.balance) + "\n\n" +
+    "Thank you!\n" + BUSINESS_NAME + "\n" + BUSINESS_PHONE;
+  return "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(email)
+    + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+}
+
+function Receipt({ cars, bookings }) {
+  const sorted = useMemo(() => [...bookings].sort((a, b) => b.created_at - a.created_at), [bookings]);
+  const [bookingId, setBookingId] = useState(sorted[0] ? sorted[0].id : "");
+  const [email, setEmail] = useState(BUSINESS_EMAIL);
+
+  useEffect(() => {
+    if (!bookingId && sorted.length) setBookingId(sorted[0].id);
+  }, [sorted]);
+
+  const raw = bookings.find((b) => b.id === bookingId);
+  const receipt = raw ? enrichBooking(raw, cars) : null;
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>Receipt</h2>
+        <p>Select a booking to generate, download, or email the receipt.</p>
+      </div>
+
+      <div className="form-field highlight mb-16" style={{ maxWidth: 320 }}>
+        <label>Select Booking</label>
+        <select value={bookingId} onChange={(e) => setBookingId(e.target.value)}>
+          {sorted.map((b) => <option key={b.id} value={b.id}>{b.id} — {b.customer}</option>)}
+        </select>
+      </div>
+
+      {receipt && (
+        <div className="card" style={{ maxWidth: 600, padding: 0 }}>
+          <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--line)", display: "flex", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>{BUSINESS_NAME}</div>
+              <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Lucknow, Uttar Pradesh &nbsp;|&nbsp; {BUSINESS_PHONE}</div>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "var(--amber)" }}>RECEIPT</div>
+          </div>
+
+          <div style={{ padding: "20px 28px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 18 }}>
+              <div>
+                <div className="muted" style={{ fontSize: 11, fontWeight: 700 }}>BILL TO</div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{receipt.customer}</div>
+                <div className="muted" style={{ fontSize: 13 }}>{receipt.phone}</div>
+              </div>
+              <div className="text-right">
+                <div className="muted" style={{ fontSize: 11, fontWeight: 700 }}>VEHICLE</div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{receipt.reg_no}</div>
+                <div className="muted" style={{ fontSize: 13 }}>{receipt.model} | {receipt.type}</div>
+              </div>
+            </div>
+
+            <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "16px 0" }} />
+
+            <div className="muted" style={{ fontSize: 11, fontWeight: 700, marginBottom: 8 }}>BOOKING PERIOD</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 18 }}>
+              <FieldBox label="From" value={fmtDate(receipt.from_date)} />
+              <FieldBox label="To" value={fmtDate(receipt.to_date)} />
+              <FieldBox label="Days" value={receipt.days} />
+              <FieldBox label="Daily Rate" value={fmtRs(receipt.rate)} />
+            </div>
+
+            <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "16px 0" }} />
+
+            <div className="muted" style={{ fontSize: 11, fontWeight: 700, marginBottom: 10 }}>CHARGES</div>
+            <ReceiptRow label={receipt.days + " days × " + fmtRs(receipt.rate)} value={fmtRs(receipt.total)} />
+            <ReceiptRow label="Total" value={fmtRs(receipt.total)} bold />
+            <ReceiptRow label="Advance Paid" value={fmtRs(receipt.advance)} />
+
+            <div style={{ background: "var(--ink-soft)", color: "#fff", borderRadius: 8, padding: "12px 16px", display: "flex", justifyContent: "space-between", marginTop: 14, fontWeight: 700 }}>
+              <span>BALANCE DUE</span>
+              <span style={{ fontSize: 16 }}>{fmtRs(receipt.balance)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {receipt && (
+        <div style={{ display: "flex", gap: 12, marginTop: 18, maxWidth: 600 }}>
+          <button className="btn btn-primary" onClick={() => downloadReceiptPdf(receipt)}>⬇  Download PDF</button>
+        </div>
+      )}
+
+      {receipt && (
+        <div className="card card-pad mt-24" style={{ maxWidth: 600 }}>
+          <h3 className="section-title">Send via Email</h3>
+          <div style={{ display: "flex", gap: 10 }}>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com"
+              style={{ flex: 1, padding: "9px 11px", border: "1px solid var(--line)", borderRadius: 8 }} />
+            <a className="btn btn-success" href={gmailComposeUrl(receipt, email)} target="_blank" rel="noreferrer">📧  Open Gmail Compose</a>
+          </div>
+          <p className="muted" style={{ fontSize: 12, marginTop: 10, marginBottom: 0 }}>
+            Opens Gmail in a new tab with the receipt details pre-filled — review and hit send.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FieldBox({ label, value }) {
+  return (
+    <div>
+      <div className="muted" style={{ fontSize: 10 }}>{label}</div>
+      <div style={{ fontWeight: 700, fontSize: 14 }}>{value}</div>
+    </div>
+  );
+}
+
+function ReceiptRow({ label, value, bold }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontWeight: bold ? 700 : 400 }}>
+      <span className={bold ? "" : "muted"} style={{ fontSize: 13 }}>{label}</span>
+      <span style={{ fontSize: bold ? 14 : 13 }}>{value}</span>
+    </div>
+  );
+}
+
+/* ============================== Send Message ============================== */
+
+function buildMessage(b) {
+  return [
+    "Hi " + b.customer + ", your car booking is confirmed!",
+    "",
+    "Booking ID  :  " + b.id,
+    "Car           :  " + b.reg_no,
+    "From        :  " + fmtDate(b.from_date),
+    "To           :  " + fmtDate(b.to_date),
+    "Days        :  " + b.days,
+    "Total        :  Rs. " + b.total.toLocaleString("en-IN"),
+    "Advance   :  Rs. " + b.advance.toLocaleString("en-IN"),
+    "Balance Due:  Rs. " + b.balance.toLocaleString("en-IN"),
+    "",
+    "Please bring a valid ID and licence at pickup. Thank you!",
+  ].join("\n");
+}
+
+function SendMessage({ cars, bookings, toast }) {
+  const sorted = useMemo(() => [...bookings].sort((a, b) => b.created_at - a.created_at), [bookings]);
+  const [bookingId, setBookingId] = useState(sorted[0] ? sorted[0].id : "");
+
+  useEffect(() => {
+    if (!bookingId && sorted.length) setBookingId(sorted[0].id);
+  }, [sorted]);
+
+  const raw = bookings.find((b) => b.id === bookingId);
+  const enriched = raw ? enrichBooking(raw, cars) : null;
+  const message = enriched ? buildMessage(enriched) : "";
+
+  function copyMessage() {
+    navigator.clipboard.writeText(message);
+    toast.success("Message copied — paste it into WhatsApp");
+  }
+
+  function waLink() {
+    if (!enriched) return "#";
+    const digits = enriched.phone.replace(/[^\d]/g, "");
+    return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
+  }
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>Send Message (WhatsApp)</h2>
+        <p>Pick a booking, then copy the message or open it directly in WhatsApp.</p>
+      </div>
+
+      <div className="form-field highlight mb-16" style={{ maxWidth: 320 }}>
+        <label>Booking</label>
+        <select value={bookingId} onChange={(e) => setBookingId(e.target.value)}>
+          {sorted.map((b) => <option key={b.id} value={b.id}>{b.id} — {b.customer}</option>)}
+        </select>
+      </div>
+
+      {message && (
+        <React.Fragment>
+          <div className="card card-pad" style={{ maxWidth: 480, whiteSpace: "pre-wrap", fontFamily: "ui-monospace, monospace", fontSize: 13, background: "#E5DDD5" }}>
+            {message}
+          </div>
+
+          <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+            <button className="btn btn-primary" onClick={copyMessage}>📋 Copy Message</button>
+            <a className="btn btn-success" href={waLink()} target="_blank" rel="noreferrer">💬 Open in WhatsApp</a>
+          </div>
+
+          <p className="muted" style={{ fontSize: 12, marginTop: 14, maxWidth: 480 }}>
+            Tip: "Open in WhatsApp" pre-fills the message to {enriched.phone} via WhatsApp Web/App — you just hit send.
+          </p>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/* ============================== App ============================== */
+
+function App() {
+  const [cars, setCars] = useState(() => loadFromStorage("rental_cars", SEED_CARS));
+  const [bookings, setBookings] = useState(() => loadFromStorage("rental_bookings", SEED_BOOKINGS));
+  const [page, setPage] = useState("dashboard");
+  const [autoOpenNew, setAutoOpenNew] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => { localStorage.setItem("rental_cars", JSON.stringify(cars)); }, [cars]);
+  useEffect(() => { localStorage.setItem("rental_bookings", JSON.stringify(bookings)); }, [bookings]);
+
+  function pushToast(message, type) {
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t, { id, message, type }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
+  }
+  const toast = { success: (m) => pushToast(m, "success"), error: (m) => pushToast(m, "error") };
+
+  function navigate(key, opts) {
+    setPage(key);
+    if (opts && opts.openNew) setAutoOpenNew(true);
+  }
+
+  function addCar(car) { setCars((cs) => [...cs, car]); }
+  function updateCar(id, payload) { setCars((cs) => cs.map((c) => (c.id === id ? { ...c, ...payload } : c))); }
+  function deleteCar(id) { setCars((cs) => cs.filter((c) => c.id !== id)); }
+
+  function addBooking(b) { setBookings((bs) => [...bs, b]); }
+  function updateBooking(id, payload) { setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, ...payload } : b))); }
+  function deleteBooking(id) { setBookings((bs) => bs.filter((b) => b.id !== id)); }
+  function dismissBooking(id, dismissed) { setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, dismissed } : b))); }
+
+  function resetSampleData() {
+    if (!confirm("Reset all data back to the original sample fleet and bookings? This clears anything you've added.")) return;
+    setCars(SEED_CARS);
+    setBookings(SEED_BOOKINGS);
+    toast.success("Reset to sample data");
+  }
+
+  let body;
+  if (page === "dashboard") body = <Dashboard cars={cars} bookings={bookings} navigate={navigate} dismissBooking={dismissBooking} />;
+  else if (page === "cars") body = <Cars cars={cars} bookings={bookings} addCar={addCar} updateCar={updateCar} deleteCar={deleteCar} toast={toast} />;
+  else if (page === "bookings") body = (
+    <Bookings
+      cars={cars} bookings={bookings}
+      addBooking={addBooking} updateBooking={updateBooking} deleteBooking={deleteBooking} dismissBooking={dismissBooking}
+      toast={toast} autoOpenNew={autoOpenNew} clearAutoOpen={() => setAutoOpenNew(false)}
+    />
+  );
+  else if (page === "availability") body = <Availability cars={cars} bookings={bookings} />;
+  else if (page === "calendar") body = <CalendarPage cars={cars} bookings={bookings} />;
+  else if (page === "receipt") body = <Receipt cars={cars} bookings={bookings} />;
+  else if (page === "message") body = <SendMessage cars={cars} bookings={bookings} toast={toast} />;
+
+  return (
+    <div className="app-shell">
+      <div className="mobile-topbar">
+        <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>☰</button>
+        <span className="brand">Saurabh's Rental Car Service</span>
+        <span style={{ width: 24 }}></span>
+      </div>
+      <div className={"sidebar-overlay" + (sidebarOpen ? " open" : "")} onClick={() => setSidebarOpen(false)} />
+      <Sidebar page={page} navigate={navigate} onReset={resetSampleData} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className="main">{body}</main>
+      <Toasts toasts={toasts} />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+</script>
+</body>
+</html>
