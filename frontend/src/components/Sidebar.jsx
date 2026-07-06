@@ -24,7 +24,7 @@ export default function Sidebar({ open, onClose }) {
           {/* <h1>Saurabh's Rental<br />Car Service</h1> */}
           {/* <p>Car Rental Booking System</p> */}
           <img
-            src="/logo1.png"
+            src="/logo2.png"
             alt="Saurabh's Rental Car Service Logo"
             style={{ width: "100%" }}
           />
