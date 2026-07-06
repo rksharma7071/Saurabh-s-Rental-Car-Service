@@ -68,13 +68,24 @@ export function generateReceiptPdf(booking) {
     y += 30;
     doc.moveTo(50, y).lineTo(545, y).strokeColor(LINE).stroke();
 
+    // Trip notes (only shown when the booking actually has any)
+    if (booking.notes && booking.notes.trim()) {
+      y += 18;
+      doc.fillColor(MUTED).fontSize(9).text("TRIP NOTES", 50, y);
+      y += 14;
+      doc.fillColor(INK_SOFT).font("Helvetica").fontSize(10).text(booking.notes.trim(), 50, y, { width: 495 });
+      y = doc.y + 14;
+      doc.moveTo(50, y).lineTo(545, y).strokeColor(LINE).stroke();
+    }
+
     // Charges
     y += 18;
     doc.fillColor(MUTED).fontSize(9).text("CHARGES", 50, y);
 
     y += 18;
+    const usingCustomPrice = Number(booking.custom_price) > 0;
     doc.fillColor(INK_SOFT).font("Helvetica").fontSize(11)
-      .text(`${booking.days} days x ${fmtRs(booking.rate)}`, 50, y);
+      .text(usingCustomPrice ? "Custom Price" : `${booking.days} days x ${fmtRs(booking.rate)}`, 50, y);
     doc.font("Helvetica-Bold").fontSize(12).text(fmtRs(booking.total), 0, y, { align: "right", width: 545 });
 
     y += 22;

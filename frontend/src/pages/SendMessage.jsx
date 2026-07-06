@@ -60,7 +60,7 @@ export default function SendMessage() {
             {message}
           </div>
 
-          <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+          <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
             <button className="btn btn-primary" onClick={copyMessage}>📋 Copy Message</button>
             <a className="btn btn-success" href={waLink()} target="_blank" rel="noreferrer">
               💬 Open in WhatsApp

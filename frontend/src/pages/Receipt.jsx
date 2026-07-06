@@ -9,6 +9,7 @@ export default function Receipt() {
   const [receipt, setReceipt] = useState(null);
   const [email, setEmail] = useState("mailsachingupta20@gmail.com");
   const [sending, setSending] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -23,6 +24,17 @@ export default function Receipt() {
     if (!bookingId) return;
     api.getReceipt(bookingId).then(setReceipt).catch((e) => toast.error(e.message));
   }, [bookingId]);
+
+  async function handleDownloadPdf() {
+    setDownloading(true);
+    try {
+      await api.downloadReceiptPdf(receipt.id, `Receipt-${receipt.id}.pdf`);
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   async function handleSendEmail() {
     if (!email) return toast.error("Enter a recipient email");
@@ -82,17 +94,28 @@ export default function Receipt() {
             <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "16px 0" }} />
 
             <div className="muted" style={{ fontSize: 11, fontWeight: 700, marginBottom: 8 }}>BOOKING PERIOD</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 18 }}>
+            <div className="receipt-fields-grid" style={{ marginBottom: 18 }}>
               <FieldBox label="From" value={fmtDate(receipt.from_date)} />
               <FieldBox label="To" value={fmtDate(receipt.to_date)} />
               <FieldBox label="Days" value={receipt.days} />
               <FieldBox label="Daily Rate" value={fmtRs(receipt.rate)} />
             </div>
 
+            {receipt.notes && receipt.notes.trim() && (
+              <>
+                <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "16px 0" }} />
+                <div className="muted" style={{ fontSize: 11, fontWeight: 700, marginBottom: 8 }}>TRIP NOTES</div>
+                <div style={{ fontSize: 13, whiteSpace: "pre-wrap" }}>{receipt.notes.trim()}</div>
+              </>
+            )}
+
             <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "16px 0" }} />
 
             <div className="muted" style={{ fontSize: 11, fontWeight: 700, marginBottom: 10 }}>CHARGES</div>
-            <Row label={`${receipt.days} days × ${fmtRs(receipt.rate)}`} value={fmtRs(receipt.total)} />
+            <Row
+              label={Number(receipt.custom_price) > 0 ? "Custom Price" : `${receipt.days} days × ${fmtRs(receipt.rate)}`}
+              value={fmtRs(receipt.total)}
+            />
             <Row label="Total" value={fmtRs(receipt.total)} bold />
             <Row label="Advance Paid" value={fmtRs(receipt.advance)} />
 
@@ -110,26 +133,22 @@ export default function Receipt() {
 
       {receipt && (
         <div style={{ display: "flex", gap: 12, marginTop: 18, maxWidth: 600 }}>
-          <a
-            className="btn btn-primary"
-            href={api.getReceiptPdfUrl(receipt.id)}
-            download={`Receipt-${receipt.id}.pdf`}
-          >
-            ⬇  Download PDF
-          </a>
+          <button className="btn btn-primary" onClick={handleDownloadPdf} disabled={downloading}>
+            {downloading ? "Preparing…" : "⬇  Download PDF"}
+          </button>
         </div>
       )}
 
       {receipt && (
         <div className="card card-pad mt-24" style={{ maxWidth: 600 }}>
           <h3 className="section-title">Send via Email</h3>
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="customer@example.com"
-              style={{ flex: 1, padding: "9px 11px", border: "1px solid var(--line)", borderRadius: 8 }}
+              style={{ flex: "1 1 200px", padding: "9px 11px", border: "1px solid var(--line)", borderRadius: 8 }}
             />
             <button className="btn btn-success" onClick={handleSendEmail} disabled={sending}>
               {sending ? "Sending…" : "📧 Send Receipt"}

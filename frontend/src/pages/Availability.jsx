@@ -46,7 +46,7 @@ export default function Availability() {
 
       <div className="card card-pad mb-16">
         <h3 className="section-title">1. Search</h3>
-        <form onSubmit={handleCheck} className="form-grid" style={{ gridTemplateColumns: "2fr 1fr 1fr auto", alignItems: "end" }}>
+        <form onSubmit={handleCheck} className="form-grid search-grid">
           <div className="form-field highlight">
             <label>Car (Reg No)</label>
             <select required value={regNo} onChange={(e) => setRegNo(e.target.value)}>
@@ -96,12 +96,12 @@ export default function Availability() {
                 )}
                 {result.conflicts.map((c) => (
                   <tr key={c.id}>
-                    <td>{c.id}</td>
-                    <td>{c.customer}</td>
-                    <td>{fmtDate(c.from_date)}</td>
-                    <td>{fmtDate(c.to_date)}</td>
-                    <td>{c.days}</td>
-                    <td><StatusPill status={c.status} /></td>
+                    <td data-label="Booking ID">{c.id}</td>
+                    <td data-label="Customer">{c.customer}</td>
+                    <td data-label="From">{fmtDate(c.from_date)}</td>
+                    <td data-label="To">{fmtDate(c.to_date)}</td>
+                    <td data-label="Days">{c.days}</td>
+                    <td data-label="Status"><StatusPill status={c.status} /></td>
                   </tr>
                 ))}
               </tbody>

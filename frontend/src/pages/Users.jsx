@@ -116,10 +116,10 @@ export default function Users() {
               )}
               {users.map((u) => (
                 <tr key={u._id}>
-                  <td><strong>{u.username}</strong></td>
-                  <td><span style={{ textTransform: "capitalize" }}>{u.role}</span></td>
-                  <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                  <td>
+                  <td data-label="Username"><strong>{u.username}</strong></td>
+                  <td data-label="Role"><span style={{ textTransform: "capitalize" }}>{u.role}</span></td>
+                  <td data-label="Created At">{new Date(u.createdAt).toLocaleDateString()}</td>
+                  <td data-label="Actions">
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(u)}>Edit</button>{" "}
                     {u.username !== "admin" && (
                       <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(u)}>Delete</button>

@@ -37,14 +37,17 @@ export default function App() {
           <div className="mobile-topbar">
             <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>☰</button>
             <span className="brand">Saurabh's Rental Car Service</span>
-            <span style={{ width: 24 }}></span>
+            <button className="mobile-logout-btn" onClick={handleLogout}>Log out</button>
           </div>
           <div
             className={"sidebar-overlay" + (sidebarOpen ? " open" : "")}
             onClick={() => setSidebarOpen(false)}
           />
-          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} onLogout={handleLogout} />
+          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <main className="main">
+            <div className="desktop-topbar">
+              <button className="btn btn-ghost btn-sm" onClick={handleLogout}>⏻ Log out</button>
+            </div>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/cars" element={<Cars />} />

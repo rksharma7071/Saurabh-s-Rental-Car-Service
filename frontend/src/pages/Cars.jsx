@@ -104,13 +104,13 @@ export default function Cars() {
         <button className="btn btn-primary" onClick={openAdd}>+ Add Car</button>
       </div>
 
-      <div className="filters" style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <input type="text" placeholder="Search by model or reg no" value={search} onChange={e => setSearch(e.target.value)} style={{ padding: "8px", flex: 1, borderRadius: "4px", border: "1px solid #ccc" }} />
-        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}>
+      <div className="filters">
+        <input type="text" placeholder="Search by model or reg no" value={search} onChange={e => setSearch(e.target.value)} />
+        <select value={filterType} onChange={e => setFilterType(e.target.value)}>
           <option value="">All Types</option>
           {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All Statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
@@ -133,13 +133,13 @@ export default function Cars() {
               )}
               {cars.map((c) => (
                 <tr key={c.id}>
-                  <td>{c.id}</td>
-                  <td>{c.reg_no}</td>
-                  <td>{c.model}</td>
-                  <td>{c.type}</td>
-                  <td>{fmtRs(c.rate)}</td>
-                  <td><StatusPill status={c.status} /></td>
-                  <td>
+                  <td data-label="Car ID">{c.id}</td>
+                  <td data-label="Registration No">{c.reg_no}</td>
+                  <td data-label="Model">{c.model}</td>
+                  <td data-label="Type">{c.type}</td>
+                  <td data-label="Daily Rate">{fmtRs(c.rate)}</td>
+                  <td data-label="Status"><StatusPill status={c.status} /></td>
+                  <td data-label="Actions">
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>Edit</button>{" "}
                     <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(c)}>Delete</button>
                   </td>
@@ -147,9 +147,9 @@ export default function Cars() {
               ))}
             </tbody>
           </table>
-          <div className="pagination" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+          <div className="pagination">
             <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
-            <span style={{ fontSize: "14px", color: "#666" }}>Page {page} of {totalPages || 1}</span>
+            <span>Page {page} of {totalPages || 1}</span>
             <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
           </div>
         </div>

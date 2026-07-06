@@ -52,8 +52,8 @@ export default function CalendarPage() {
       {loading || !data ? (
         <div className="loading-spinner" />
       ) : (
-        <div className="table-wrap">
-          <table className="data-table" style={{ tableLayout: "fixed" }}>
+        <div className="table-wrap calendar-table-wrap">
+          <table className="data-table calendar-table" style={{ tableLayout: "fixed" }}>
             <thead>
               <tr>
                 <th style={{ width: 180 }}>Car</th>

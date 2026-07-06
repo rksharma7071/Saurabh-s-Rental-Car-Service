@@ -11,7 +11,7 @@ const links = [
   { to: "/send-message", label: "Send Message", icon: "💬" },
 ];
 
-export default function Sidebar({ open, onClose, onLogout }) {
+export default function Sidebar({ open, onClose }) {
   const isAdmin = getUserRole() === "admin";
   const displayedLinks = isAdmin 
     ? [...links, { to: "/users", label: "Users", icon: "👥" }] 
@@ -46,7 +46,6 @@ export default function Sidebar({ open, onClose, onLogout }) {
       </nav>
       <div className="sidebar-footer">
         <div>Lucknow, UP · +91 98389 22420</div>
-        <button className="sidebar-logout-btn" onClick={onLogout}>Log out</button>
       </div>
     </aside>
   );

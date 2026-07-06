@@ -14,13 +14,17 @@ export async function getRateForReg(regNo) {
   return car ? car.rate : 0;
 }
 
-/** Attach computed days / rate / total / balance to a raw booking doc (plain object). */
+/** Attach computed days / rate / total / balance to a raw booking doc (plain object).
+ *  If a custom_price (>0) is set on the booking, it replaces the days*rate calculation
+ *  entirely — the daily rate is ignored and the total is exactly the custom price. */
 export async function enrichBooking(doc) {
   const days = daysBetween(doc.from_date, doc.to_date);
   const rate = await getRateForReg(doc.reg_no);
-  const total = days * rate;
+  const customPrice = Number(doc.custom_price) || 0;
+  const usingCustomPrice = customPrice > 0;
+  const total = usingCustomPrice ? customPrice : days * rate;
   const balance = total - doc.advance;
-  return { ...doc, days, rate, total, balance };
+  return { ...doc, days, rate, total, balance, custom_price: customPrice, using_custom_price: usingCustomPrice };
 }
 
 export async function enrichBookings(docs) {

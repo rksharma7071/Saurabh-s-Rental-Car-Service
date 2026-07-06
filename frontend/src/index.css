@@ -128,22 +128,6 @@ textarea {
   gap: 10px;
 }
 
-.sidebar-logout-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #CBD5E1;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 7px 10px;
-  border-radius: 6px;
-  width: 100%;
-}
-
-.sidebar-logout-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
 /* ---------- Login ---------- */
 .login-page {
   min-height: 100vh;
@@ -245,6 +229,22 @@ textarea {
   flex: 1;
   padding: 28px 36px 60px;
   max-width: 100%;
+}
+
+/* Sticky top-right bar holding the Log out button on desktop. Negative margins
+   pull it flush to .main's real top/left/right edges (escaping .main's own
+   padding), then its own padding realigns the button with the page content
+   below. Hidden on mobile — the mobile topbar has its own Log out button. */
+.desktop-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -28px -36px 20px;
+  padding: 14px 36px;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  z-index: 80;
 }
 
 .page-header {
@@ -380,6 +380,7 @@ table.data-table tbody tr:hover {
   overflow-x: auto;
   border-radius: var(--radius);
   border: 1px solid var(--line);
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ---------- Status pills ---------- */
@@ -679,6 +680,13 @@ table.data-table tbody tr:hover {
 .mobile-topbar .brand {
   font-size: 14px;
   font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  padding: 0 8px;
 }
 
 .hamburger-btn {
@@ -688,6 +696,22 @@ table.data-table tbody tr:hover {
   font-size: 22px;
   line-height: 1;
   padding: 4px 8px;
+  flex-shrink: 0;
+}
+
+.mobile-logout-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mobile-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-close-btn {
@@ -702,6 +726,10 @@ table.data-table tbody tr:hover {
   .app-shell {
     flex-direction: column;
     min-height: 100vh;
+  }
+
+  .desktop-topbar {
+    display: none;
   }
 
   .mobile-topbar {
@@ -792,4 +820,151 @@ table.data-table tbody tr:hover {
   .modal-body {
     padding: 16px;
   }
+}
+
+/* ---------- Dashboard filter bar ---------- */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+}
+.filter-bar .form-field { min-width: 160px; flex: 1 1 160px; }
+.filter-bar .filter-clear-btn { flex: 0 0 auto; height: 38px; }
+
+/* ---------- Textarea fields (Add/Edit Booking notes, etc.) ---------- */
+.form-field textarea {
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  resize: vertical;
+}
+.form-field textarea:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: -1px;
+}
+
+/* ---------- Search / filter bars on Bookings & Cars pages ---------- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.filters input,
+.filters select {
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+}
+.filters input[type="text"] { flex: 1 1 220px; }
+.filters select { flex: 1 1 160px; }
+
+/* ---------- Pagination bars ---------- */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.pagination span { font-size: 14px; color: var(--muted); }
+
+/* ==================================================================
+   Mobile responsiveness
+   ================================================================== */
+
+/* ---------- Responsive utility grids (replace inline gridTemplateColumns
+   that used to ignore screen size entirely) ---------- */
+.search-grid { grid-template-columns: 2fr 1fr 1fr auto; align-items: end; }
+.receipt-fields-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+@media (max-width: 900px) {
+  .search-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .receipt-fields-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------- Card-style tables on phones ----------
+   Below 700px, ordinary data tables (bookings, cars, availability results,
+   users…) stop trying to fit many columns side by side and instead render
+   each row as a small labelled card. The calendar grid is deliberately
+   excluded — a day-by-day grid is meant to be scrolled horizontally, the
+   same way any calendar app works on a phone. */
+@media (max-width: 700px) {
+  table.data-table:not(.calendar-table) { font-size: 13px; }
+
+  table.data-table:not(.calendar-table),
+  table.data-table:not(.calendar-table) tbody,
+  table.data-table:not(.calendar-table) tr,
+  table.data-table:not(.calendar-table) td {
+    display: block;
+    width: 100%;
+  }
+
+  table.data-table:not(.calendar-table) thead { display: none; }
+
+  table.data-table:not(.calendar-table) tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  table.data-table:not(.calendar-table) tr:last-child { margin-bottom: 0; }
+  table.data-table:not(.calendar-table) tbody tr:nth-child(even) { background: var(--card); }
+
+  table.data-table:not(.calendar-table) td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+    white-space: normal;
+  }
+  table.data-table:not(.calendar-table) td:last-child { border-bottom: none; }
+
+  table.data-table:not(.calendar-table) td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    margin-right: auto;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    text-align: left;
+  }
+
+  /* Empty-state rows (colSpan messages) shouldn't get a label or card border */
+  table.data-table:not(.calendar-table) td.empty-state {
+    display: block;
+    text-align: center;
+  }
+  table.data-table:not(.calendar-table) td.empty-state::before { content: none; }
+
+  .table-wrap:not(.calendar-table-wrap) { border: none; overflow-x: visible; }
+}
+
+/* ---------- Toasts on small screens: full-width instead of risking overflow ---------- */
+@media (max-width: 480px) {
+  .toast-container { left: 16px; right: 16px; bottom: 16px; }
+  .toast { min-width: 0; width: 100%; }
+}
+
+/* ---------- Slightly larger touch targets on small screens ---------- */
+@media (max-width: 700px) {
+  .btn-sm { padding: 7px 12px; }
+  .modal-close { padding: 6px 8px; font-size: 20px; }
+  input[type="checkbox"] { width: 18px; height: 18px; }
 }

@@ -9,7 +9,7 @@ import { fmtDate, fmtRs, todayISO } from "../utils";
 const STATUSES = ["Confirmed", "Pending", "Completed", "Cancelled"];
 
 function emptyForm() {
-  return { reg_no: "", customer: "", phone: "", from_date: todayISO(), to_date: todayISO(), advance: "", status: "Pending" };
+  return { reg_no: "", customer: "", phone: "", from_date: todayISO(), to_date: todayISO(), advance: "", status: "Pending", notes: "", custom_price: "" };
 }
 
 export default function Bookings() {
@@ -74,6 +74,8 @@ export default function Bookings() {
     setForm({
       reg_no: b.reg_no, customer: b.customer, phone: b.phone,
       from_date: b.from_date, to_date: b.to_date, advance: b.advance, status: b.status,
+      notes: b.notes || "",
+      custom_price: b.custom_price ? b.custom_price : "",
     });
     setModalOpen(true);
   }
@@ -82,7 +84,7 @@ export default function Bookings() {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form, advance: Number(form.advance) || 0 };
+      const payload = { ...form, advance: Number(form.advance) || 0, custom_price: Number(form.custom_price) || 0 };
       if (editing) {
         await api.updateBooking(editing.id, payload);
         toast.success(`${editing.id} updated`);
@@ -124,7 +126,9 @@ export default function Bookings() {
     ? Math.round((new Date(form.to_date) - new Date(form.from_date)) / 86400000) + 1
     : 0;
   const previewRate = selectedCar?.rate || 0;
-  const previewTotal = previewDays > 0 ? previewDays * previewRate : 0;
+  const previewCustomPrice = Number(form.custom_price) || 0;
+  const usingCustomPrice = previewCustomPrice > 0;
+  const previewTotal = usingCustomPrice ? previewCustomPrice : (previewDays > 0 ? previewDays * previewRate : 0);
   const previewBalance = previewTotal - (Number(form.advance) || 0);
 
   return (
@@ -137,13 +141,12 @@ export default function Bookings() {
         <button className="btn btn-primary" onClick={openAdd}>+ Add a Booking</button>
       </div>
 
-      <div className="filters" style={{ marginBottom: "20px" }}>
-        <input 
-          type="text" 
-          placeholder="Search by customer name or reg no" 
-          value={search} 
-          onChange={e => setSearch(e.target.value)} 
-          style={{ padding: "8px", width: "300px", borderRadius: "4px", border: "1px solid #ccc" }} 
+      <div className="filters">
+        <input
+          type="text"
+          placeholder="Search by customer name or reg no"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
         />
       </div>
 
@@ -165,22 +168,27 @@ export default function Bookings() {
               )}
               {bookings.map((b) => (
                 <tr key={b.id} style={b.dismissed ? { opacity: 0.5 } : {}}>
-                  <td>{b.id}</td>
-                  <td>{b.reg_no}</td>
-                  <td>{b.customer}</td>
-                  <td>{b.phone}</td>
-                  <td>{fmtDate(b.from_date)}</td>
-                  <td>{fmtDate(b.to_date)}</td>
-                  <td>{b.days}</td>
-                  <td>{fmtRs(b.rate)}</td>
-                  <td>{fmtRs(b.total)}</td>
-                  <td>{fmtRs(b.advance)}</td>
-                  <td>{fmtRs(b.balance)}</td>
-                  <td><StatusPill status={b.status} /></td>
-                  <td>
+                  <td data-label="ID">{b.id}</td>
+                  <td data-label="Car">{b.reg_no}</td>
+                  <td data-label="Customer">{b.customer}</td>
+                  <td data-label="Phone">{b.phone}</td>
+                  <td data-label="From">{fmtDate(b.from_date)}</td>
+                  <td data-label="To">{fmtDate(b.to_date)}</td>
+                  <td data-label="Days">{b.days}</td>
+                  <td data-label="Rate">{fmtRs(b.rate)}</td>
+                  <td data-label="Total">
+                    {fmtRs(b.total)}
+                    {b.using_custom_price && (
+                      <span title="Custom price — daily rate ignored" style={{ marginLeft: 4, color: "var(--amber)" }}>⚡</span>
+                    )}
+                  </td>
+                  <td data-label="Advance">{fmtRs(b.advance)}</td>
+                  <td data-label="Balance">{fmtRs(b.balance)}</td>
+                  <td data-label="Status"><StatusPill status={b.status} /></td>
+                  <td data-label="Dismiss">
                     <input type="checkbox" checked={!!b.dismissed} onChange={() => toggleDismiss(b)} />
                   </td>
-                  <td>
+                  <td data-label="Actions">
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(b)}>Edit</button>{" "}
                     <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(b)}>Delete</button>
                   </td>
@@ -188,9 +196,9 @@ export default function Bookings() {
               ))}
             </tbody>
           </table>
-          <div className="pagination" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+          <div className="pagination">
             <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
-            <span style={{ fontSize: "14px", color: "#666" }}>Page {page} of {totalPages || 1}</span>
+            <span>Page {page} of {totalPages || 1}</span>
             <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
           </div>
         </div>
@@ -235,18 +243,43 @@ export default function Bookings() {
                 <label>Advance Paid (Rs)</label>
                 <input type="number" min="0" value={form.advance} onChange={(e) => setForm({ ...form, advance: e.target.value })} />
               </div>
+              <div className="form-field">
+                <label>Custom Price (Rs) — optional</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="0 = use days × daily rate"
+                  value={form.custom_price}
+                  onChange={(e) => setForm({ ...form, custom_price: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="form-field mt-24">
+              <label>Trip Details / Notes (optional)</label>
+              <textarea
+                rows={3}
+                placeholder="e.g. Pickup: Lucknow Railway Station → Drop: Ayodhya. Needs child seat, early pickup at 6 AM…"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              />
             </div>
 
             {selectedCar && (
               <div className="card card-pad mt-24" style={{ background: "var(--surface)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                {usingCustomPrice && (
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--amber-text)", marginBottom: 10 }}>
+                    ⚡ Custom price active — daily rate is ignored
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, opacity: usingCustomPrice ? 0.4 : 1 }}>
                   <span className="muted">Days</span><strong>{previewDays > 0 ? previewDays : "—"}</strong>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6, opacity: usingCustomPrice ? 0.4 : 1 }}>
                   <span className="muted">Rate / day</span><strong>{fmtRs(previewRate)}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
-                  <span className="muted">Total</span><strong>{fmtRs(previewTotal)}</strong>
+                  <span className="muted">Total{usingCustomPrice ? " (custom)" : ""}</span><strong>{fmtRs(previewTotal)}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
                   <span className="muted">Balance Due</span><strong>{fmtRs(previewBalance)}</strong>

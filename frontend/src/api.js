@@ -54,6 +54,33 @@ export const api = {
   // Receipt
   getReceipt: (id) => request(`/receipt/${id}`),
   getReceiptPdfUrl: (id) => `${BASE}/receipt/${id}/pdf`,
+  // Downloads the PDF with the auth token attached (a plain <a href> link can't carry headers,
+  // so this fetches the file as a blob and triggers the save manually).
+  downloadReceiptPdf: async (id, filename) => {
+    const token = getToken();
+    const res = await fetch(`${BASE}/receipt/${id}/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (res.status === 401) {
+      logout();
+      window.location.reload();
+      return;
+    }
+    if (!res.ok) {
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson ? await res.json() : null;
+      throw new Error(data?.error || `Download failed (${res.status})`);
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || `Receipt-${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
   emailReceipt: (id, email) =>
     request(`/receipt/${id}/email`, { method: "POST", body: JSON.stringify({ email }) }),
 
