@@ -1,10 +1,9 @@
 import PDFDocument from "pdfkit";
 
-const INK = "#0F172A";
-const INK_SOFT = "#1E293B";
-const MUTED = "#64748B";
-const LINE = "#CBD5E1";
-const AMBER = "#F59E0B";
+const INK = "#2A1F1A";
+const INK_SOFT = "#6B1E23";
+const MUTED = "#8A7B68";
+const LINE = "#D9CFB8";
 
 const BUSINESS_NAME = "Saurabh's Rental Car Service";
 const BUSINESS_LOCATION = "Lucknow, Uttar Pradesh";
@@ -28,8 +27,8 @@ export function generateReceiptPdf(booking) {
     doc.on("error", reject);
 
     // Header
-    doc.fillColor(INK).font("Helvetica-Bold").fontSize(20).text(BUSINESS_NAME, 50, 50);
-    doc.fillColor(AMBER).font("Helvetica-Bold").fontSize(20).text("RECEIPT", 0, 50, { align: "right" });
+    doc.fillColor(INK).font("Times-Bold").fontSize(20).text(BUSINESS_NAME, 50, 50);
+    doc.fillColor(INK_SOFT).font("Times-Bold").fontSize(20).text("RECEIPT", 0, 50, { align: "right" });
 
     doc.fillColor(MUTED).font("Helvetica").fontSize(10)
       .text(`${BUSINESS_NAME}  |  ${BUSINESS_LOCATION}`, 50, 78);
@@ -49,6 +48,17 @@ export function generateReceiptPdf(booking) {
     y += 20;
     doc.fillColor(INK_SOFT).font("Helvetica").fontSize(10).text(booking.phone, 50, y);
     doc.text(`${booking.model} | ${booking.type}`, 320, y);
+
+    if (booking.status === "Confirmed") {
+      const stampX = 500, stampY = 165;
+      doc.save();
+      doc.rotate(-12, { origin: [stampX, stampY] });
+      doc.circle(stampX, stampY, 30).lineWidth(1.5).strokeColor(INK_SOFT).stroke();
+      doc.circle(stampX, stampY, 23).lineWidth(0.75).strokeColor(INK_SOFT).stroke();
+      doc.fillColor(INK_SOFT).font("Times-Bold").fontSize(7)
+        .text("CONFIRMED", stampX - 23, stampY - 4, { width: 46, align: "center" });
+      doc.restore();
+    }
 
     y += 24;
     doc.moveTo(50, y).lineTo(545, y).strokeColor(LINE).stroke();
@@ -111,7 +121,7 @@ export function generateReceiptPdf(booking) {
 
     // Footer
     y += 40;
-    doc.fillColor(INK_SOFT).font("Helvetica-Oblique").fontSize(12)
+    doc.fillColor(INK_SOFT).font("Times-Italic").fontSize(12)
       .text(`Thank you for choosing ${BUSINESS_NAME}!`, 50, y, { align: "center", width: 495 });
 
     doc.fillColor(MUTED).font("Helvetica").fontSize(8)

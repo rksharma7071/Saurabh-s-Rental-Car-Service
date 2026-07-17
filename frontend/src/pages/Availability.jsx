@@ -3,6 +3,7 @@ import { api } from "../api";
 import StatusPill from "../components/StatusPill";
 import { useToast } from "../components/Toast";
 import { fmtDate, todayISO } from "../utils";
+import { CircleCheck, CircleX } from "lucide-react";
 
 export default function Availability() {
   const [cars, setCars] = useState([]);
@@ -79,9 +80,14 @@ export default function Availability() {
               fontSize: 20,
               fontWeight: 700,
               padding: "26px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
             }}
           >
-            {result.available ? "✓   AVAILABLE" : "✕   NOT AVAILABLE"}
+            {result.available ? <CircleCheck size={24} aria-hidden="true" /> : <CircleX size={24} aria-hidden="true" />}
+            {result.available ? "AVAILABLE" : "NOT AVAILABLE"}
           </div>
 
           <h3 className="section-title">3. Conflicting Confirmed Bookings</h3>

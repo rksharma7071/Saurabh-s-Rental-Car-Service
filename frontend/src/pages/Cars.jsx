@@ -3,12 +3,15 @@ import { api } from "../api";
 import Modal from "../components/Modal";
 import StatusPill from "../components/StatusPill";
 import { useToast } from "../components/Toast";
-import { fmtRs } from "../utils";
+import { fmtRs, docStatus } from "../utils";
 
 const TYPES = ["Sedan", "SUV", "MUV", "Hatchback", "Van"];
 const STATUSES = ["Active", "Inactive", "Maintenance"];
 
-const emptyForm = { reg_no: "", model: "", type: "Sedan", rate: "", status: "Active" };
+const emptyForm = {
+  reg_no: "", model: "", type: "Sedan", rate: "", status: "Active",
+  insurance_expiry: "", puc_expiry: "", rc_expiry: "",
+};
 
 export default function Cars() {
   const [cars, setCars] = useState([]);
@@ -58,7 +61,10 @@ export default function Cars() {
 
   function openEdit(car) {
     setEditing(car);
-    setForm({ reg_no: car.reg_no, model: car.model, type: car.type, rate: car.rate, status: car.status });
+    setForm({
+      reg_no: car.reg_no, model: car.model, type: car.type, rate: car.rate, status: car.status,
+      insurance_expiry: car.insurance_expiry || "", puc_expiry: car.puc_expiry || "", rc_expiry: car.rc_expiry || "",
+    });
     setModalOpen(true);
   }
 
@@ -124,12 +130,12 @@ export default function Cars() {
             <thead>
               <tr>
                 <th>Car ID</th><th>Registration No</th><th>Model</th><th>Type</th>
-                <th>Daily Rate</th><th>Status</th><th></th>
+                <th>Daily Rate</th><th>Status</th><th>Documents</th><th></th>
               </tr>
             </thead>
             <tbody>
               {cars.length === 0 && (
-                <tr><td colSpan={7} className="empty-state">No cars in the fleet yet.</td></tr>
+                <tr><td colSpan={8} className="empty-state">No cars in the fleet yet.</td></tr>
               )}
               {cars.map((c) => (
                 <tr key={c.id}>
@@ -139,6 +145,13 @@ export default function Cars() {
                   <td data-label="Type">{c.type}</td>
                   <td data-label="Daily Rate">{fmtRs(c.rate)}</td>
                   <td data-label="Status"><StatusPill status={c.status} /></td>
+                  <td data-label="Documents">
+                    <div className="doc-badges">
+                      <DocBadge label="Ins" status={docStatus(c.insurance_expiry)} />
+                      <DocBadge label="PUC" status={docStatus(c.puc_expiry)} />
+                      <DocBadge label="RC" status={docStatus(c.rc_expiry)} />
+                    </div>
+                  </td>
                   <td data-label="Actions">
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>Edit</button>{" "}
                     <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(c)}>Delete</button>
@@ -200,6 +213,24 @@ export default function Cars() {
                 </select>
               </div>
             </div>
+
+            <div className="mt-24" style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>
+              Document Expiry Dates (optional)
+            </div>
+            <div className="form-grid mt-16">
+              <div className="form-field">
+                <label>Insurance Expiry</label>
+                <input type="date" value={form.insurance_expiry} onChange={(e) => setForm({ ...form, insurance_expiry: e.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>PUC Expiry</label>
+                <input type="date" value={form.puc_expiry} onChange={(e) => setForm({ ...form, puc_expiry: e.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>RC Expiry</label>
+                <input type="date" value={form.rc_expiry} onChange={(e) => setForm({ ...form, rc_expiry: e.target.value })} />
+              </div>
+            </div>
             <div className="form-actions">
               <button type="button" className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
               <button type="submit" className="btn btn-primary" disabled={saving}>
@@ -210,5 +241,13 @@ export default function Cars() {
         </Modal>
       )}
     </div>
+  );
+}
+
+function DocBadge({ label, status }) {
+  return (
+    <span className={`doc-badge doc-badge-${status.level}`} title={`${label}: ${status.label}`}>
+      {label}
+    </span>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { useToast } from "../components/Toast";
+import { Copy, MessageCircle } from "lucide-react";
 
 export default function SendMessage() {
   const [bookings, setBookings] = useState([]);
@@ -55,15 +56,15 @@ export default function SendMessage() {
         <>
           <div
             className="card card-pad"
-            style={{ maxWidth: 480, whiteSpace: "pre-wrap", fontFamily: "ui-monospace, monospace", fontSize: 13, background: "#E5DDD5" }}
+            style={{ maxWidth: 480, whiteSpace: "pre-wrap", fontFamily: "ui-monospace, monospace", fontSize: 13, background: "var(--whatsapp-bg)" }}
           >
             {message}
           </div>
 
           <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
-            <button className="btn btn-primary" onClick={copyMessage}>📋 Copy Message</button>
+            <button className="btn btn-primary" onClick={copyMessage}><Copy size={15} aria-hidden="true" /> Copy Message</button>
             <a className="btn btn-success" href={waLink()} target="_blank" rel="noreferrer">
-              💬 Open in WhatsApp
+              <MessageCircle size={15} aria-hidden="true" /> Open in WhatsApp
             </a>
           </div>
 

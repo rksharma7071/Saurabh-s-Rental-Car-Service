@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import StatusPill from "../components/StatusPill";
 import { useToast } from "../components/Toast";
 import { fmtDate, fmtRs, todayISO } from "../utils";
+import { Download, Zap, History } from "lucide-react";
 
 const STATUSES = ["Confirmed", "Pending", "Completed", "Cancelled"];
 
@@ -26,6 +27,8 @@ export default function Bookings() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [phoneHint, setPhoneHint] = useState(null);
 
   async function load() {
     setLoading(true);
@@ -63,9 +66,27 @@ export default function Bookings() {
     }
   }, [searchParams]);
 
+  // Debounced "has this phone number booked before?" lookup for the repeat-customer hint.
+  useEffect(() => {
+    if (!modalOpen || !form.phone || form.phone.trim().length < 7) {
+      setPhoneHint(null);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      try {
+        const res = await api.lookupCustomerByPhone(form.phone.trim(), editing?.id);
+        setPhoneHint(res.count > 0 ? res : null);
+      } catch {
+        // Non-critical hint — fail silently.
+      }
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [form.phone, editing, modalOpen]);
+
   function openAdd() {
     setEditing(null);
     setForm(emptyForm());
+    setPhoneHint(null);
     setModalOpen(true);
   }
 
@@ -77,6 +98,7 @@ export default function Bookings() {
       notes: b.notes || "",
       custom_price: b.custom_price ? b.custom_price : "",
     });
+    setPhoneHint(null);
     setModalOpen(true);
   }
 
@@ -121,6 +143,42 @@ export default function Bookings() {
     }
   }
 
+  async function handleExportCsv() {
+    setExporting(true);
+    try {
+      const res = await api.getBookings("?limit=10000");
+      const all = Array.isArray(res) ? res : (res.data || []);
+      if (all.length === 0) {
+        toast.error("No bookings to export");
+        return;
+      }
+      const headers = ["Booking ID", "Car", "Customer", "Phone", "From", "To", "Days", "Rate", "Total", "Advance", "Balance", "Status", "Notes"];
+      const rows = all.map((b) => [
+        b.id, b.reg_no, b.customer, b.phone, b.from_date, b.to_date, b.days, b.rate, b.total, b.advance, b.balance, b.status,
+        (b.notes || "").replace(/\r?\n/g, " "),
+      ]);
+      const csvEscape = (val) => {
+        const s = String(val ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bookings-export-${todayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Exported ${all.length} bookings`);
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const selectedCar = cars.find((c) => c.reg_no === form.reg_no);
   const previewDays = form.from_date && form.to_date
     ? Math.round((new Date(form.to_date) - new Date(form.from_date)) / 86400000) + 1
@@ -138,7 +196,12 @@ export default function Bookings() {
           <h2>Bookings</h2>
           <p>Days, Rate, Total and Balance are auto-calculated.</p>
         </div>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add a Booking</button>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button className="btn btn-primary" onClick={openAdd}>+ Add a Booking</button>
+          <button className="btn btn-ghost" onClick={handleExportCsv} disabled={exporting}>
+            {exporting ? "Exporting…" : <><Download size={14} aria-hidden="true" /> Export CSV</>}
+          </button>
+        </div>
       </div>
 
       <div className="filters">
@@ -179,7 +242,9 @@ export default function Bookings() {
                   <td data-label="Total">
                     {fmtRs(b.total)}
                     {b.using_custom_price && (
-                      <span title="Custom price — daily rate ignored" style={{ marginLeft: 4, color: "var(--amber)" }}>⚡</span>
+                      <span title="Custom price — daily rate ignored" style={{ marginLeft: 4, color: "var(--amber)", display: "inline-flex", verticalAlign: -2 }}>
+                        <Zap size={13} aria-hidden="true" />
+                      </span>
                     )}
                   </td>
                   <td data-label="Advance">{fmtRs(b.advance)}</td>
@@ -224,6 +289,12 @@ export default function Bookings() {
               <div className="form-field">
                 <label>Phone</label>
                 <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+91 98XXX XXXXX" />
+                {phoneHint && (
+                  <div className="repeat-customer-hint">
+                    <History size={13} aria-hidden="true" style={{ verticalAlign: -2, marginRight: 4 }} />
+                    {phoneHint.lastCustomerName} has booked with us {phoneHint.count} time{phoneHint.count > 1 ? "s" : ""} before
+                  </div>
+                )}
               </div>
               <div className="form-field">
                 <label>Status</label>
@@ -268,8 +339,8 @@ export default function Bookings() {
             {selectedCar && (
               <div className="card card-pad mt-24" style={{ background: "var(--surface)" }}>
                 {usingCustomPrice && (
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--amber-text)", marginBottom: 10 }}>
-                    ⚡ Custom price active — daily rate is ignored
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--amber-text)", marginBottom: 10, display: "flex", alignItems: "center", gap: 5 }}>
+                    <Zap size={13} aria-hidden="true" /> Custom price active — daily rate is ignored
                   </div>
                 )}
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, opacity: usingCustomPrice ? 0.4 : 1 }}>

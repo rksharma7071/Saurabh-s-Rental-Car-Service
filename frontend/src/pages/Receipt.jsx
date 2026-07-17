@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import { useToast } from "../components/Toast";
 import { fmtDate, fmtRs } from "../utils";
+import { Download, Mail } from "lucide-react";
 
 export default function Receipt() {
   const [bookings, setBookings] = useState([]);
@@ -66,15 +67,16 @@ export default function Receipt() {
       </div>
 
       {receipt && (
-        <div className="card" style={{ maxWidth: 600, padding: 0 }}>
+        <div className="card" style={{ maxWidth: 600, padding: 0, position: "relative", overflow: "hidden" }}>
+          {receipt.status === "Confirmed" && <ConfirmedStamp />}
           <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--line)", display: "flex", justifyContent: "space-between" }}>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>Saurabh's Rental Car Service</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600 }}>Saurabh's Rental Car Service</div>
               <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
                 Lucknow, Uttar Pradesh &nbsp;|&nbsp; +91 98389 22420
               </div>
             </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "var(--amber)" }}>RECEIPT</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, color: "var(--ink-soft)" }}>RECEIPT</div>
           </div>
 
           <div style={{ padding: "20px 28px" }}>
@@ -125,7 +127,7 @@ export default function Receipt() {
               marginTop: 14, fontWeight: 700,
             }}>
               <span>BALANCE DUE</span>
-              <span style={{ fontSize: 16 }}>{fmtRs(receipt.balance)}</span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 17 }}>{fmtRs(receipt.balance)}</span>
             </div>
           </div>
         </div>
@@ -134,7 +136,7 @@ export default function Receipt() {
       {receipt && (
         <div style={{ display: "flex", gap: 12, marginTop: 18, maxWidth: 600 }}>
           <button className="btn btn-primary" onClick={handleDownloadPdf} disabled={downloading}>
-            {downloading ? "Preparing…" : "⬇  Download PDF"}
+            {downloading ? "Preparing…" : <><Download size={15} aria-hidden="true" /> Download PDF</>}
           </button>
         </div>
       )}
@@ -151,7 +153,7 @@ export default function Receipt() {
               style={{ flex: "1 1 200px", padding: "9px 11px", border: "1px solid var(--line)", borderRadius: 8 }}
             />
             <button className="btn btn-success" onClick={handleSendEmail} disabled={sending}>
-              {sending ? "Sending…" : "📧 Send Receipt"}
+              {sending ? "Sending…" : <><Mail size={15} aria-hidden="true" /> Send Receipt</>}
             </button>
           </div>
           <p className="muted" style={{ fontSize: 12, marginTop: 10, marginBottom: 0 }}>
@@ -167,16 +169,57 @@ function FieldBox({ label, value }) {
   return (
     <div>
       <div className="muted" style={{ fontSize: 10 }}>{label}</div>
-      <div style={{ fontWeight: 700, fontSize: 14 }}>{value}</div>
+      <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600, fontSize: 14 }}>{value}</div>
     </div>
   );
 }
 
 function Row({ label, value, bold }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontWeight: bold ? 700 : 400 }}>
-      <span className={bold ? "" : "muted"} style={{ fontSize: 13 }}>{label}</span>
-      <span style={{ fontSize: bold ? 14 : 13 }}>{value}</span>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+      <span className={bold ? "" : "muted"} style={{ fontSize: 13, fontWeight: bold ? 600 : 400 }}>{label}</span>
+      <span style={{ fontFamily: "var(--font-mono)", fontWeight: bold ? 600 : 500, fontSize: bold ? 14 : 13 }}>{value}</span>
+    </div>
+  );
+}
+
+/** The receipt's signature element: an ink-stamp motif for confirmed bookings,
+ *  echoing the hand-stamped ledgers small businesses have long used. */
+function ConfirmedStamp() {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 18,
+        right: 24,
+        width: 74,
+        height: 74,
+        borderRadius: "50%",
+        border: "2.5px solid var(--ink-soft)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transform: "rotate(-10deg)",
+        opacity: 0.85,
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: "50%",
+          border: "1px solid var(--ink-soft)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+        }}
+      >
+        <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 11, color: "var(--ink-soft)", lineHeight: 1.15 }}>
+          CONFIRMED
+        </span>
+      </div>
     </div>
   );
 }

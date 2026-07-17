@@ -43,6 +43,8 @@ export const api = {
     request(`/bookings/${id}/dismiss`, { method: "PATCH", body: JSON.stringify({ dismissed }) }),
   deleteBooking: (id) => request(`/bookings/${id}`, { method: "DELETE" }),
   getBookingMessage: (id) => request(`/bookings/${id}/message`),
+  lookupCustomerByPhone: (phone, excludeId) =>
+    request(`/bookings/lookup?phone=${encodeURIComponent(phone)}${excludeId ? `&exclude=${excludeId}` : ""}`),
 
   // Availability
   checkAvailability: (regNo, from, to) =>
@@ -89,4 +91,13 @@ export const api = {
   createUser: (body) => request("/users", { method: "POST", body: JSON.stringify(body) }),
   updateUser: (id, body) => request(`/users/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deleteUser: (id) => request(`/users/${id}`, { method: "DELETE" }),
+
+  // Expenses
+  getExpenses: (query = "") => request(`/expenses${query}`),
+  createExpense: (body) => request("/expenses", { method: "POST", body: JSON.stringify(body) }),
+  updateExpense: (id, body) => request(`/expenses/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteExpense: (id) => request(`/expenses/${id}`, { method: "DELETE" }),
+
+  // Reports
+  getFleetPerformance: (days = 30) => request(`/reports/fleet-performance?days=${days}`),
 };

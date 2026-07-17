@@ -1,26 +1,67 @@
 :root {
-  --surface: #F8FAFC;
-  --card: #FFFFFF;
-  --ink: #0F172A;
-  /* --ink-soft: #1E293B; */
-  --ink-soft: #011E3C;
-  --muted: #64748B;
-  --muted-light: #94A3B8;
-  --line: #E2E8F0;
-  --green: #10B981;
-  --green-soft: #D1FAE5;
-  --green-text: #065F46;
-  --amber: #F59E0B;
-  --amber-soft: #FEF3C7;
-  --amber-text: #92400E;
-  --red: #EF4444;
-  --red-soft: #FEE2E2;
-  --red-text: #991B1B;
-  --blue: #3B82F6;
-  --blue-soft: #EFF6FF;
-  --blue-text: #1E40AF;
+  --green: #3D5A50;
+  --amber: #B87333;
+  --red: #9B3A2E;
+  --blue: #B08D2B;
   --radius: 10px;
-  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body: 'IBM Plex Sans', -apple-system, "Segoe UI", Arial, Helvetica, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+:root,
+[data-theme="light"] {
+  --surface: #FAF6ED;
+  --card: #FFFFFF;
+  --input-bg: #FFFFFF;
+  --ink: #2A1F1A;
+  --ink-soft: #6B1E23;
+  --muted: #8A7B68;
+  --muted-light: #B0A08D;
+  --line: #D9CFB8;
+  --on-accent: #2A1F1A;
+  --green-soft: #E4EAE4;
+  --green-text: #2A4038;
+  --amber-soft: #F5E6D3;
+  --amber-text: #7A4A1F;
+  --red-soft: #F3E1DC;
+  --red-text: #6B2820;
+  --blue-soft: #F1E4C9;
+  --blue-text: #7A5F1C;
+  --highlight-bg: #F1E4C9;
+  --shadow: 0 1px 2px rgba(42, 31, 26, 0.06), 0 1px 3px rgba(42, 31, 26, 0.08);
+  --calendar-booked-bg: #E7C4BC;
+  --calendar-booked-text: #6B2820;
+  --calendar-free-bg: #DCE5DA;
+  --calendar-free-text: #2A4038;
+  --whatsapp-bg: #E5DDD5;
+}
+
+[data-theme="dark"] {
+  --surface: #1C1512;
+  --card: #2A211C;
+  --input-bg: #33281F;
+  --ink: #F2E9DD;
+  --ink-soft: #6B1E23;
+  --muted: #C9B8A3;
+  --muted-light: #8A7862;
+  --line: #40332A;
+  --on-accent: #1C1512;
+  --green-soft: #253A32;
+  --green-text: #A8D4C4;
+  --amber-soft: #4A3319;
+  --amber-text: #F0C08A;
+  --red-soft: #4A2620;
+  --red-text: #F0A99C;
+  --blue-soft: #4A3D1A;
+  --blue-text: #E8CC6C;
+  --highlight-bg: #4A3D1A;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.35);
+  --calendar-booked-bg: #5C2E28;
+  --calendar-booked-text: #F0C4BA;
+  --calendar-free-bg: #2A3D30;
+  --calendar-free-text: #B8D4C4;
+  --whatsapp-bg: #0B141A;
 }
 
 * {
@@ -35,9 +76,11 @@ body,
 }
 
 body {
-  font-family: -apple-system, "Segoe UI", Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
   background: var(--surface);
   color: var(--ink);
+  overflow-x: hidden;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 a {
@@ -70,6 +113,10 @@ textarea {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .sidebar-brand {
@@ -78,8 +125,9 @@ textarea {
 }
 
 .sidebar-brand h1 {
+  font-family: var(--font-display);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0 0 2px;
   line-height: 1.3;
 }
@@ -116,7 +164,7 @@ textarea {
 
 .sidebar-nav a.active {
   background: var(--blue);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .sidebar-footer {
@@ -127,6 +175,26 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.sidebar-logout-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #CBD5E1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 10px;
+  border-radius: 6px;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 /* ---------- Login ---------- */
@@ -167,8 +235,9 @@ textarea {
 }
 
 .login-brand h1 {
-  font-size: 17px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
   color: var(--ink);
   line-height: 1.3;
@@ -228,6 +297,7 @@ textarea {
 
 .main {
   flex: 1;
+  min-width: 0;
   padding: 28px 36px 60px;
   max-width: 100%;
 }
@@ -239,6 +309,7 @@ textarea {
 .desktop-topbar {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
   margin: -28px -36px 20px;
   padding: 14px 36px;
   position: sticky;
@@ -253,8 +324,9 @@ textarea {
 }
 
 .page-header h2 {
-  font-size: 24px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
   margin: 0 0 4px;
   color: var(--ink);
 }
@@ -304,8 +376,9 @@ textarea {
 }
 
 .kpi-card .value {
-  font-size: 26px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -326,6 +399,10 @@ textarea {
   color: #fff;
   text-align: center;
   transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .quick-action-btn:hover {
@@ -334,6 +411,7 @@ textarea {
 
 .quick-action-btn.blue {
   background: var(--blue);
+  color: var(--on-accent);
 }
 
 .quick-action-btn.green {
@@ -421,7 +499,7 @@ table.data-table tbody tr:hover {
 
 .pill-inactive {
   background: var(--line);
-  color: var(--ink-soft);
+  color: var(--ink);
 }
 
 .pill-maintenance {
@@ -453,7 +531,7 @@ table.data-table tbody tr:hover {
 
 .btn-primary {
   background: var(--blue);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .btn-success {
@@ -468,7 +546,7 @@ table.data-table tbody tr:hover {
 
 .btn-ghost {
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--ink);
   border: 1px solid var(--line);
 }
 
@@ -502,7 +580,7 @@ table.data-table tbody tr:hover {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--input-bg);
   color: var(--ink);
 }
 
@@ -514,12 +592,13 @@ table.data-table tbody tr:hover {
 
 .form-field.highlight input,
 .form-field.highlight select {
-  background: #FEF9C3;
+  background: var(--highlight-bg);
   border-color: var(--amber);
 }
 
 .form-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
@@ -538,7 +617,7 @@ table.data-table tbody tr:hover {
 }
 
 .modal-box {
-  background: #fff;
+  background: var(--card);
   border-radius: 12px;
   width: 100%;
   max-width: fit-content;
@@ -556,16 +635,20 @@ table.data-table tbody tr:hover {
 }
 
 .modal-header h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 18px;
   color: var(--muted-light);
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-body {
@@ -645,6 +728,10 @@ table.data-table tbody tr:hover {
   margin-top: 24px;
 }
 
+.mt-16 {
+  margin-top: 16px;
+}
+
 .mb-16 {
   margin-bottom: 16px;
 }
@@ -694,10 +781,11 @@ table.data-table tbody tr:hover {
   background: none;
   border: none;
   color: #fff;
-  font-size: 22px;
   line-height: 1;
   padding: 4px 8px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .mobile-logout-btn {
@@ -710,6 +798,9 @@ table.data-table tbody tr:hover {
   border-radius: 6px;
   white-space: nowrap;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .mobile-logout-btn:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -838,7 +929,7 @@ table.data-table tbody tr:hover {
   padding: 9px 11px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--input-bg);
   color: var(--ink);
   font-family: inherit;
   resize: vertical;
@@ -860,7 +951,7 @@ table.data-table tbody tr:hover {
   padding: 9px 11px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--input-bg);
   color: var(--ink);
   font-size: 14px;
 }
@@ -966,6 +1057,296 @@ table.data-table tbody tr:hover {
 /* ---------- Slightly larger touch targets on small screens ---------- */
 @media (max-width: 700px) {
   .btn-sm { padding: 7px 12px; }
-  .modal-close { padding: 6px 8px; font-size: 20px; }
+  .modal-close { padding: 6px 8px; }
   input[type="checkbox"] { width: 18px; height: 18px; }
+}
+
+/* ---------- "Today's bookings" ticker (shown after the popup is closed) ---------- */
+.today-ticker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--amber-soft);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 10px 44px 10px 0;
+  margin-bottom: 20px;
+}
+
+.today-ticker-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: today-ticker-scroll 22s linear infinite;
+  will-change: transform;
+}
+
+.today-ticker-group {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber-text);
+  padding-left: 24px;
+}
+
+.today-ticker-sep {
+  margin: 0 20px;
+  opacity: 0.5;
+}
+
+@keyframes today-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today-ticker-track { animation: none; overflow-x: auto; }
+}
+
+.today-ticker-close {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--amber-text);
+  font-size: 15px;
+  padding: 4px 8px;
+  opacity: 0.7;
+}
+.today-ticker-close:hover { opacity: 1; }
+
+/* ---------- "Today's bookings" popup badges ---------- */
+.today-kind-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.today-kind-pickup        { background: var(--blue-soft); color: var(--blue-text); }
+.today-kind-return        { background: var(--amber-soft); color: var(--amber-text); }
+.today-kind-ongoing       { background: var(--green-soft); color: var(--green-text); }
+.today-kind-pickup-and-return { background: var(--red-soft); color: var(--red-text); }
+
+/* ---------- Document expiry badges (Cars page) ---------- */
+.doc-badges {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.doc-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.doc-badge-ok       { background: var(--green-soft); color: var(--green-text); }
+.doc-badge-warning  { background: var(--amber-soft); color: var(--amber-text); }
+.doc-badge-expired  { background: var(--red-soft); color: var(--red-text); }
+.doc-badge-none     { background: var(--line); color: var(--muted); }
+
+/* ---------- Repeat-customer hint (Bookings form) ---------- */
+.repeat-customer-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue-text);
+  background: var(--blue-soft);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+/* ---------- Documents-expiring alert banner (Dashboard) ---------- */
+.docs-alert {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--red-soft);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  padding: 10px 44px 10px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--red-text);
+}
+.docs-alert-text { flex: 1; }
+.docs-alert-link {
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 700;
+}
+.docs-alert-close {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--red-text);
+  font-size: 15px;
+  padding: 4px 8px;
+  opacity: 0.7;
+}
+.docs-alert-close:hover { opacity: 1; }
+
+/* ---------- Coming Up This Week (Dashboard) ---------- */
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.upcoming-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.upcoming-row:last-child { border-bottom: none; }
+.upcoming-date {
+  font-weight: 700;
+  min-width: 90px;
+  color: var(--ink);
+}
+.upcoming-customer { font-weight: 600; }
+
+/* ---------- Gantt-style booking timeline (Calendar page) ---------- */
+.gantt-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  -webkit-overflow-scrolling: touch;
+}
+.gantt-grid {
+  min-width: 100%;
+}
+.gantt-header-row {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.gantt-car-col {
+  width: 170px;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  font-size: 13px;
+}
+.gantt-car-col-header {
+  background: var(--ink-soft);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+.gantt-day-header {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 6px 0;
+  background: var(--ink-soft);
+  color: #fff;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--line);
+}
+.gantt-day-header.weekend { background: var(--amber); color: var(--on-accent); }
+.gantt-day-header.is-today { outline: 2px solid var(--blue); outline-offset: -2px; }
+.gantt-day-name { font-size: 10px; opacity: 0.85; }
+.gantt-day-num { font-size: 13px; font-weight: 700; }
+
+.gantt-row {
+  display: flex;
+}
+.gantt-row-track {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+.gantt-cell {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-right: 1px solid var(--line);
+}
+.gantt-cell.weekend { background: var(--amber-soft); }
+.gantt-cell.is-today { background: var(--blue-soft); }
+
+.gantt-bar {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  background: var(--blue);
+  color: var(--on-accent);
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: grab;
+  box-shadow: var(--shadow);
+  user-select: none;
+}
+.gantt-bar:active { cursor: grabbing; }
+.gantt-bar.dragging { opacity: 0.75; box-shadow: 0 4px 14px rgba(0,0,0,0.3); z-index: 10; }
+
+/* ---------- Expense category pills ---------- */
+.expense-category-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.expense-category-fuel      { background: var(--amber-soft); color: var(--amber-text); }
+.expense-category-service   { background: var(--blue-soft); color: var(--blue-text); }
+.expense-category-insurance { background: var(--green-soft); color: var(--green-text); }
+.expense-category-other     { background: var(--line); color: var(--ink); }
+
+/* ---------- Utilization gauge dial (Fleet Performance page signature element) ---------- */
+.util-gauge {
+  display: flex;
+  align-items: center;
+}
+.util-gauge-ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.util-gauge-inner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--ink);
+}
+
+/* ---------- Mobile responsiveness for the new features ---------- */
+@media (max-width: 700px) {
+  .docs-alert, .upcoming-row { font-size: 12px; }
+  .upcoming-date { min-width: 76px; }
+  .gantt-car-col { width: 130px; }
 }
