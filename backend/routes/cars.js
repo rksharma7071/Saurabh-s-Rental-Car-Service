@@ -49,12 +49,15 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { reg_no, model, type, rate, status } = req.body;
+    const { reg_no, model, type, rate, status, insurance_expiry, puc_expiry, rc_expiry } = req.body;
     if (!reg_no || !model || !type || !rate) {
       return res.status(400).json({ error: "reg_no, model, type, rate are required" });
     }
     const id = await nextId(Car, "C");
-    const car = await Car.create({ _id: id, reg_no, model, type, rate, status: status || "Active" });
+    const car = await Car.create({
+      _id: id, reg_no, model, type, rate, status: status || "Active",
+      insurance_expiry: insurance_expiry || "", puc_expiry: puc_expiry || "", rc_expiry: rc_expiry || "",
+    });
     res.status(201).json(car.toJSON());
   } catch (e) {
     if (e.code === 11000) {
@@ -69,12 +72,15 @@ router.put("/:id", async (req, res, next) => {
     const existing = await Car.findById(req.params.id);
     if (!existing) return res.status(404).json({ error: "Car not found" });
 
-    const { reg_no, model, type, rate, status } = req.body;
+    const { reg_no, model, type, rate, status, insurance_expiry, puc_expiry, rc_expiry } = req.body;
     existing.reg_no = reg_no ?? existing.reg_no;
     existing.model = model ?? existing.model;
     existing.type = type ?? existing.type;
     existing.rate = rate ?? existing.rate;
     existing.status = status ?? existing.status;
+    existing.insurance_expiry = insurance_expiry ?? existing.insurance_expiry;
+    existing.puc_expiry = puc_expiry ?? existing.puc_expiry;
+    existing.rc_expiry = rc_expiry ?? existing.rc_expiry;
 
     await existing.save();
     res.json(existing.toJSON());

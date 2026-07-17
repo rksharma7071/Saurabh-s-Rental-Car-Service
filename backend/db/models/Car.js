@@ -8,6 +8,9 @@ const carSchema = new mongoose.Schema(
     type: { type: String, required: true },
     rate: { type: Number, required: true },
     status: { type: String, required: true, default: "Active" },
+    insurance_expiry: { type: String, default: "" }, // ISO date string, optional
+    puc_expiry: { type: String, default: "" },
+    rc_expiry: { type: String, default: "" },
   },
   {
     versionKey: false,

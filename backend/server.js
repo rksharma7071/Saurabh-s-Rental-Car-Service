@@ -12,6 +12,8 @@ import calendarRouter from "./routes/calendar.js";
 import receiptRouter from "./routes/receipt.js";
 import authRouter from "./routes/auth.js";
 import usersRouter from "./routes/users.js";
+import expensesRouter from "./routes/expenses.js";
+import reportsRouter from "./routes/reports.js";
 import { authMiddleware } from "./utils/authMiddleware.js";
 import { adminMiddleware } from "./utils/adminMiddleware.js";
 
@@ -55,6 +57,8 @@ app.use("/api/dashboard", authMiddleware, dashboardRouter);
 app.use("/api/availability", authMiddleware, availabilityRouter);
 app.use("/api/calendar", authMiddleware, calendarRouter);
 app.use("/api/receipt", authMiddleware, receiptRouter);
+app.use("/api/expenses", authMiddleware, expensesRouter);
+app.use("/api/reports", authMiddleware, reportsRouter);
 
 app.use((req, res) => res.status(404).json({ error: "Not found" }));
 

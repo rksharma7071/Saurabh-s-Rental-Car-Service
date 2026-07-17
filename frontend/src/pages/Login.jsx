@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { login } from "../auth";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Login({ onLogin }) {
   const [userId, setUserId] = useState("");
@@ -64,8 +63,7 @@ export default function Login({ onLogin }) {
                 className="login-eye-btn"
                 onClick={() => setShowPassword((s) => !s)}
               >
-                {/* {showPassword ? "Hide" : "Show"} */}
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
           </div>

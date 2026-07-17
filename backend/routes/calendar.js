@@ -27,35 +27,33 @@ router.get("/", async (req, res, next) => {
 
     const grid = await Promise.all(
       cars.map(async (car) => {
-        const bookings = await Booking.find({
+        const bookingRows = await Booking.find({
           reg_no: car.reg_no,
           status: "Confirmed",
           from_date: { $lte: rangeEnd },
           to_date: { $gte: rangeStart },
         })
-          .select("from_date to_date")
+          .select("customer phone from_date to_date")
           .lean();
 
-        const bookedSet = new Set();
-        for (const b of bookings) {
-          const f = new Date(b.from_date + "T00:00:00");
-          const t = new Date(b.to_date + "T00:00:00");
-          for (let d = new Date(f); d <= t; d.setDate(d.getDate() + 1)) {
-            bookedSet.add(isoDate(d));
-          }
-        }
         return {
           id: car._id,
           reg_no: car.reg_no,
           model: car.model,
           type: car.type,
           status: car.status,
-          booked: days.map((d) => bookedSet.has(d)),
+          bookings: bookingRows.map((b) => ({
+            id: b._id,
+            customer: b.customer,
+            phone: b.phone,
+            from_date: b.from_date,
+            to_date: b.to_date,
+          })),
         };
       })
     );
 
-    res.json({ days, cars: grid });
+    res.json({ days, rangeStart, rangeEnd, cars: grid });
   } catch (e) {
     next(e);
   }

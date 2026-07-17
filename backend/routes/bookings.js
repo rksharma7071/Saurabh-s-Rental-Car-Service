@@ -2,6 +2,7 @@ import express from "express";
 import Booking from "../db/models/Booking.js";
 import Car from "../db/models/Car.js";
 import { nextId, enrichBookings, enrichBooking } from "../utils/calc.js";
+import { autoCompletePastBookings } from "../utils/autoComplete.js";
 
 const router = express.Router();
 
@@ -22,8 +23,33 @@ async function findConflict(reg_no, from_date, to_date, excludeId) {
   return Booking.findOne(query).lean();
 }
 
+// Looks up how many past bookings share this phone number, so the booking form can show
+// a "booked with us N times before" hint. Must be defined before "/:id" so Express doesn't
+// treat "lookup" as an :id value.
+router.get("/lookup", async (req, res, next) => {
+  try {
+    const { phone, exclude } = req.query;
+    if (!phone || phone.trim().length < 5) {
+      return res.json({ count: 0 });
+    }
+    const query = { phone: phone.trim() };
+    if (exclude) query._id = { $ne: exclude };
+    const matches = await Booking.find(query).sort({ created_at: -1 }).lean();
+    if (matches.length === 0) return res.json({ count: 0 });
+    res.json({
+      count: matches.length,
+      lastCustomerName: matches[0].customer,
+      lastBookingDate: matches[0].from_date,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
 router.get("/", async (req, res, next) => {
   try {
+    await autoCompletePastBookings();
+
     const { page = 1, limit = 10, search = "" } = req.query;
     const query = {};
     
